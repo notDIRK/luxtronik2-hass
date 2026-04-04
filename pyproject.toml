@@ -15,6 +15,9 @@ dependencies = [
     "PyYAML>=6.0",
 ]
 
+[project.scripts]
+luxtronik2-modbus-proxy = "luxtronik2_modbus_proxy.main:cli"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0",
