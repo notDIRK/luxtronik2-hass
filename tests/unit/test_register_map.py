@@ -181,3 +181,51 @@ def test_visibility_entries_are_read_only():
         entry = reg_map.get_visibility_entry(addr)
         assert entry is not None
         assert entry.writable is False, f"address {addr}: expected writable=False"
+
+
+# --- Dynamic parameter loading tests (Phase 2, Plan 02) ---
+
+
+def test_register_map_no_extra_params_has_curated_defaults():
+    """RegisterMap with no extra params still has curated defaults at addresses 3, 4, 105."""
+    reg_map = RegisterMap(extra_param_names=[])
+    assert reg_map.get_holding_entry(3) is not None
+    assert reg_map.get_holding_entry(4) is not None
+    assert reg_map.get_holding_entry(105) is not None
+
+
+def test_register_map_default_no_extra_params_has_curated_defaults():
+    """RegisterMap() with default extra_param_names=None still has curated defaults."""
+    reg_map = RegisterMap()
+    assert reg_map.get_holding_entry(3) is not None
+    assert reg_map.get_holding_entry(4) is not None
+    assert reg_map.get_holding_entry(105) is not None
+
+
+def test_register_map_with_valid_extra_param_includes_it():
+    """RegisterMap with a valid extra param name includes that param in holding entries."""
+    reg_map = RegisterMap(extra_param_names=["ID_Einst_WK_akt"])
+    # ID_Einst_WK_akt should appear as a holding register entry
+    all_ids = {e.luxtronik_id for e in (reg_map.get_holding_entry(a) for a in reg_map.all_holding_addresses()) if e}
+    assert "ID_Einst_WK_akt" in all_ids
+
+
+def test_register_map_invalid_name_raises_value_error():
+    """RegisterMap with an invalid extra param name raises ValueError with 'Unknown parameter name'."""
+    with pytest.raises(ValueError, match="Unknown parameter name"):
+        RegisterMap(extra_param_names=["NONEXISTENT_PARAM_XYZ"])
+
+
+def test_register_map_close_match_typo_suggests_did_you_mean():
+    """RegisterMap with a close-match typo raises ValueError containing 'Did you mean'."""
+    with pytest.raises(ValueError, match="Did you mean"):
+        RegisterMap(extra_param_names=["ID_Ba_Hz_akx"])
+
+
+def test_register_map_curated_param_as_extra_does_not_crash():
+    """RegisterMap requesting an already-curated param name (address 3) does not crash."""
+    # ID_Ba_Hz_akt is the curated param at address 3 — requesting it as extra should not duplicate or crash
+    reg_map = RegisterMap(extra_param_names=["ID_Ba_Hz_akt"])
+    entry = reg_map.get_holding_entry(3)
+    assert entry is not None
+    assert entry.luxtronik_id == "ID_Ba_Hz_akt"

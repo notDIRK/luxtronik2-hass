@@ -62,3 +62,42 @@ def test_configure_logging_debug():
 def test_configure_logging_info():
     """configure_logging('INFO') succeeds without error."""
     configure_logging("INFO")
+
+
+# --- RegistersConfig tests (Phase 2, Plan 02) ---
+
+
+def test_registers_config_default_empty_parameters(tmp_path):
+    """ProxyConfig with no registers section has registers.parameters == []."""
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text("luxtronik_host: '192.168.x.x'\n")
+    config = load_config(str(config_file))
+    assert config.registers.parameters == []
+
+
+def test_registers_config_loads_parameters_from_yaml(tmp_path):
+    """ProxyConfig with registers.parameters list loads the parameter names correctly."""
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        "luxtronik_host: '192.168.x.x'\n"
+        "registers:\n"
+        "  parameters:\n"
+        "    - ID_Einst_WK_akt\n"
+    )
+    config = load_config(str(config_file))
+    assert config.registers.parameters == ["ID_Einst_WK_akt"]
+
+
+def test_registers_config_loads_multiple_parameters(tmp_path):
+    """ProxyConfig with multiple registers.parameters entries loads all names."""
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(
+        "luxtronik_host: '192.168.x.x'\n"
+        "registers:\n"
+        "  parameters:\n"
+        "    - ID_Einst_WK_akt\n"
+        "    - ID_Ba_Hz_MK3_akt\n"
+    )
+    config = load_config(str(config_file))
+    assert "ID_Einst_WK_akt" in config.registers.parameters
+    assert "ID_Ba_Hz_MK3_akt" in config.registers.parameters
