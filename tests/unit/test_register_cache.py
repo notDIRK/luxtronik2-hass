@@ -123,23 +123,30 @@ def test_update_input_values_stores_value(cache: RegisterCache) -> None:
 
 
 def test_holding_datablock_size(register_map: RegisterMap, write_queue: asyncio.Queue) -> None:
-    """Test 7: holding_datablock initialized with address=1 and size 1200 (HOLDING_BLOCK_SIZE)."""
+    """Test 7: holding_datablock initialized with address=1 and size 5001 (HOLDING_BLOCK_SIZE).
+
+    Size increased from 1200 to 5001 in Phase 2 to accommodate the SG-ready virtual
+    register at address 5000 (Plan 03).
+    """
     cache = RegisterCache(
         register_map=register_map, write_queue=write_queue, enable_writes=False
     )
     block = cache.holding_datablock
     assert block.address == 1
-    assert len(block.values) == 1200
+    assert len(block.values) == 5001
 
 
 def test_input_datablock_size(register_map: RegisterMap, write_queue: asyncio.Queue) -> None:
-    """Test 8: input_datablock initialized with address=1 and size 260 (INPUT_BLOCK_SIZE)."""
+    """Test 8: input_datablock initialized with address=1 and size 1355 (INPUT_BLOCK_SIZE).
+
+    Size increased from 260 to 1355 in Phase 2 to cover visibility registers at 1000-1354.
+    """
     cache = RegisterCache(
         register_map=register_map, write_queue=write_queue, enable_writes=False
     )
     block = cache.input_datablock
     assert block.address == 1
-    assert len(block.values) == 260
+    assert len(block.values) == 1355
 
 
 # ---------------------------------------------------------------------------

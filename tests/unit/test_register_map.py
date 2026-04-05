@@ -1,7 +1,9 @@
 """Unit tests for register definitions and RegisterMap.
 
-Tests verify the curated register definitions and the RegisterMap class
+Tests verify the full register definition databases and the RegisterMap class
 that translates between Modbus wire addresses and Luxtronik parameter IDs.
+Includes backward-compatible tests for Phase 1 curated entries plus new Phase 2
+tests for visibility support and updated block sizes.
 """
 
 import pytest
@@ -11,7 +13,7 @@ from luxtronik2_modbus_proxy.register_definitions.calculations import INPUT_REGI
 from luxtronik2_modbus_proxy.register_map import RegisterMap, RegisterEntry
 
 
-# --- Register definition tests ---
+# --- Register definition tests (backward compatible) ---
 
 
 def test_holding_registers_has_expected_entries():
@@ -40,7 +42,7 @@ def test_input_registers_has_expected_entries():
     assert INPUT_REGISTERS[257].luxtronik_id == "Heat_Output"
 
 
-# --- RegisterMap lookup tests ---
+# --- RegisterMap lookup tests (backward compatible) ---
 
 
 def test_get_holding_entry_returns_correct_entry():
@@ -80,7 +82,7 @@ def test_is_writable_false_for_unmapped():
     assert reg_map.is_writable(9999) is False
 
 
-# --- Write validation tests ---
+# --- Write validation tests (backward compatible) ---
 
 
 def test_validate_write_value_valid_heating_mode():
@@ -113,11 +115,69 @@ def test_validate_write_value_dhw_setpoint_above_max():
     assert reg_map.validate_write_value(105, 700) is False
 
 
-# --- Block size tests ---
+# --- Block size tests (updated for Phase 2) ---
 
 
-def test_register_map_block_sizes():
-    """RegisterMap block sizes match expected constants."""
+def test_register_map_input_block_size():
+    """RegisterMap input_block_size is 1355 to cover calculations (0-259) and visibilities (1000-1354)."""
     reg_map = RegisterMap()
-    assert reg_map.holding_block_size == 1200
-    assert reg_map.input_block_size == 260
+    assert reg_map.input_block_size == 1355
+
+
+def test_register_map_holding_block_size():
+    """RegisterMap holding_block_size is 5001 to accommodate SG-ready virtual register at 5000."""
+    reg_map = RegisterMap()
+    assert reg_map.holding_block_size == 5001
+
+
+# --- Visibility lookup tests (new Phase 2) ---
+
+
+def test_get_visibility_entry_returns_entry_at_1000():
+    """RegisterMap.get_visibility_entry(1000) returns a valid RegisterEntry."""
+    reg_map = RegisterMap()
+    entry = reg_map.get_visibility_entry(1000)
+    assert entry is not None
+    assert isinstance(entry, RegisterEntry)
+    assert entry.address == 1000
+    assert entry.writable is False
+
+
+def test_get_visibility_entry_returns_entry_at_1354():
+    """RegisterMap.get_visibility_entry(1354) returns a valid RegisterEntry."""
+    reg_map = RegisterMap()
+    entry = reg_map.get_visibility_entry(1354)
+    assert entry is not None
+    assert isinstance(entry, RegisterEntry)
+    assert entry.address == 1354
+    assert entry.writable is False
+
+
+def test_get_visibility_entry_returns_none_for_out_of_range():
+    """RegisterMap.get_visibility_entry(999) returns None for address below visibility range."""
+    reg_map = RegisterMap()
+    assert reg_map.get_visibility_entry(999) is None
+
+
+def test_all_visibility_addresses_count():
+    """RegisterMap.all_visibility_addresses() returns exactly 355 addresses."""
+    reg_map = RegisterMap()
+    addrs = reg_map.all_visibility_addresses()
+    assert len(addrs) == 355
+
+
+def test_all_visibility_addresses_range():
+    """RegisterMap.all_visibility_addresses() spans 1000-1354."""
+    reg_map = RegisterMap()
+    addrs = reg_map.all_visibility_addresses()
+    assert min(addrs) == 1000
+    assert max(addrs) == 1354
+
+
+def test_visibility_entries_are_read_only():
+    """All visibility entries returned by get_visibility_entry() have writable=False."""
+    reg_map = RegisterMap()
+    for addr in reg_map.all_visibility_addresses():
+        entry = reg_map.get_visibility_entry(addr)
+        assert entry is not None
+        assert entry.writable is False, f"address {addr}: expected writable=False"
