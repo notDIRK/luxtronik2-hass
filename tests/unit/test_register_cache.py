@@ -167,3 +167,87 @@ def test_mark_fresh(cache: RegisterCache) -> None:
     cache.mark_fresh()
     assert cache.is_stale is False
     assert cache.last_successful_read is not None
+
+
+# ---------------------------------------------------------------------------
+# SG-ready virtual register interception tests (Plan 03)
+# ---------------------------------------------------------------------------
+
+
+async def test_sg_ready_write_enqueues_sg_ready_write(
+    cache: RegisterCache, write_queue: asyncio.Queue
+) -> None:
+    """Test 11: Write to datablock address 5001 (wire 5000) enqueues SgReadyWrite.
+
+    The SG-ready register is at wire address 5000, datablock address 5001.
+    A valid mode write (0-3) should enqueue an SgReadyWrite (not a raw tuple).
+    """
+    from luxtronik2_modbus_proxy.sg_ready import SgReadyWrite
+
+    result = await cache.holding_datablock.async_setValues(address=5001, values=[1])
+    assert result is None, "Valid SG-ready write should return None (success)"
+    assert write_queue.qsize() == 1
+    item = write_queue.get_nowait()
+    assert isinstance(item, SgReadyWrite), "SG-ready write must enqueue SgReadyWrite"
+    assert item.mode == 1
+    assert item.param_writes == {3: 0, 4: 0}
+
+
+async def test_sg_ready_invalid_mode_rejected(
+    cache: RegisterCache, write_queue: asyncio.Queue
+) -> None:
+    """Test 12: Write mode 5 to datablock address 5001 returns ILLEGAL_VALUE.
+
+    Mode 5 is outside the valid SG-ready range (0-3) and must be rejected
+    before reaching the write queue.
+    """
+    from pymodbus.datastore.sequential import ExcCodes
+
+    result = await cache.holding_datablock.async_setValues(address=5001, values=[5])
+    assert result == ExcCodes.ILLEGAL_VALUE
+    assert write_queue.qsize() == 0, "Invalid SG-ready mode must not enqueue"
+
+
+async def test_sg_ready_write_disabled_returns_illegal_value(
+    register_map: RegisterMap, write_queue: asyncio.Queue
+) -> None:
+    """Test 13: With enable_writes=False, SG-ready write returns ILLEGAL_VALUE.
+
+    The global enable_writes guard takes priority over SG-ready interception.
+    """
+    from pymodbus.datastore.sequential import ExcCodes
+
+    cache_no_writes = RegisterCache(
+        register_map=register_map, write_queue=write_queue, enable_writes=False
+    )
+    result = await cache_no_writes.holding_datablock.async_setValues(
+        address=5001, values=[1]
+    )
+    assert result == ExcCodes.ILLEGAL_VALUE
+    assert write_queue.qsize() == 0
+
+
+async def test_sg_ready_mode_0_maps_to_evu_lock(
+    cache: RegisterCache, write_queue: asyncio.Queue
+) -> None:
+    """Test 14: SG-ready mode 0 enqueues EVU lock parameter writes {3:4, 4:4}."""
+    from luxtronik2_modbus_proxy.sg_ready import SgReadyWrite
+
+    await cache.holding_datablock.async_setValues(address=5001, values=[0])
+    item = write_queue.get_nowait()
+    assert isinstance(item, SgReadyWrite)
+    assert item.mode == 0
+    assert item.param_writes == {3: 4, 4: 4}
+
+
+async def test_sg_ready_mode_3_maps_to_force_on(
+    cache: RegisterCache, write_queue: asyncio.Queue
+) -> None:
+    """Test 15: SG-ready mode 3 enqueues Force on parameter writes {3:0, 4:2}."""
+    from luxtronik2_modbus_proxy.sg_ready import SgReadyWrite
+
+    await cache.holding_datablock.async_setValues(address=5001, values=[3])
+    item = write_queue.get_nowait()
+    assert isinstance(item, SgReadyWrite)
+    assert item.mode == 3
+    assert item.param_writes == {3: 0, 4: 2}
