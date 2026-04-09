@@ -20,6 +20,7 @@ Data flow:
 
 from __future__ import annotations
 
+import datetime
 import logging
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -36,6 +37,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -420,6 +422,119 @@ class LuxtronikSensorEntity(CoordinatorEntity[LuxtronikCoordinator], SensorEntit
 
 
 # ---------------------------------------------------------------------------
+# LuxtronikLastBackupSensor
+# ---------------------------------------------------------------------------
+
+
+class LuxtronikLastBackupSensor(SensorEntity):
+    """Sensor entity that shows the timestamp of the last parameter backup.
+
+    This sensor is NOT a CoordinatorEntity — it does not depend on Luxtronik poll
+    data. Instead it reads backup metadata stored in hass.data by LuxtronikBackupButton
+    (button.py) after each successful backup.
+
+    Displays as a TIMESTAMP device class sensor (datetime object as native_value)
+    so HA automatically formats the time relative to "now". The filename of the
+    backup file is exposed as an extra state attribute.
+
+    Updates via dispatcher signal (DOMAIN_backup_complete) fired by button.py
+    immediately after each backup completes — no coordinator poll required.
+    """
+
+    _attr_name = "Luxtronik Last Backup"
+    _attr_icon = "mdi:backup-restore"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_has_entity_name = False
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the last-backup sensor.
+
+        Args:
+            hass: The Home Assistant instance.
+            entry: The config entry this entity belongs to.
+        """
+        self.hass = hass
+        self._entry = entry
+        self._entry_id = entry.entry_id
+        self._attr_unique_id = f"{entry.entry_id}_last_backup"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info so this sensor groups under the heat pump device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry_id)},
+            name=MODEL,
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
+
+    @property
+    def native_value(self) -> datetime.datetime | None:
+        """Return the timestamp of the last successful backup.
+
+        Reads hass.data[DOMAIN][f"{entry_id}_last_backup"] set by button.py.
+        Parses the stored ISO 8601 string into a datetime object as required
+        by SensorDeviceClass.TIMESTAMP.
+
+        Returns:
+            datetime.datetime with timezone info, or None if no backup has run yet.
+        """
+        metadata: dict | None = self.hass.data.get(DOMAIN, {}).get(
+            f"{self._entry_id}_last_backup"
+        )
+        if metadata is None:
+            return None
+        try:
+            return datetime.datetime.fromisoformat(metadata["timestamp"])
+        except (KeyError, ValueError, TypeError):
+            return None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return extra state attributes including the backup filename.
+
+        Returns:
+            Dict with "filename" key if a backup exists, else empty dict.
+        """
+        metadata: dict | None = self.hass.data.get(DOMAIN, {}).get(
+            f"{self._entry_id}_last_backup"
+        )
+        if metadata is None:
+            return {}
+        return {"filename": metadata.get("filename")}
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to backup_complete dispatcher signal when entity is added to HA.
+
+        Stores the unsubscribe callback via self.async_on_remove() so it is
+        automatically cleaned up when the entity is removed from HA.
+        """
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass,
+                f"{DOMAIN}_backup_complete",
+                self._handle_backup_complete,
+            )
+        )
+
+    def _handle_backup_complete(self, metadata: dict) -> None:
+        """Handle the backup_complete dispatcher signal.
+
+        Called by button.py after a successful backup. Triggers a state refresh
+        so the sensor immediately reflects the new backup timestamp and filename.
+
+        Args:
+            metadata: Dict with "timestamp" (ISO string) and "filename" keys.
+        """
+        self.async_write_ha_state()
+
+
+# ---------------------------------------------------------------------------
 # Platform setup
 # ---------------------------------------------------------------------------
 
@@ -471,12 +586,16 @@ async def async_setup_entry(
         for desc in ALL_PARAM_DESCRIPTIONS
     )
 
+    # Add the last-backup sensor — reads hass.data set by button.py, not coordinator.
+    entities_all: list[SensorEntity] = list(entities)
+    entities_all.append(LuxtronikLastBackupSensor(hass, entry))
+
     _LOGGER.debug(
-        "Registered %d sensor entities (%d core, %d extra calcs, %d params)",
-        len(entities),
+        "Registered %d sensor entities (%d core, %d extra calcs, %d params, 1 last_backup)",
+        len(entities_all),
         len(CORE_SENSOR_DESCRIPTIONS),  # actual registered may be 9 if power skipped
         len(ALL_EXTRA_CALC_DESCRIPTIONS),
         len(ALL_PARAM_DESCRIPTIONS),
     )
 
-    async_add_entities(entities)
+    async_add_entities(entities_all)

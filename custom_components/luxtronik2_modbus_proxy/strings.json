@@ -40,6 +40,16 @@
     }
   },
   "entity": {
+    "button": {
+      "backup_parameters": {
+        "name": "Backup Parameters"
+      }
+    },
+    "sensor": {
+      "last_backup": {
+        "name": "Last Backup"
+      }
+    },
     "select": {
       "heating_mode": {
         "name": "Heating Mode",
