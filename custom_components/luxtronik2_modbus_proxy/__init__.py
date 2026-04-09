@@ -8,8 +8,8 @@ Wires the config entry lifecycle to the LuxtronikCoordinator:
   platforms.
 - D-13: ``async_unload_entry`` unloads all entity platforms and removes the
   coordinator from ``hass.data``.
-- D-14: ``PLATFORMS`` lists the ``sensor``, ``select``, and ``number`` entity
-  platforms.
+- D-14: ``PLATFORMS`` lists the ``sensor``, ``select``, ``number``, and ``button``
+  entity platforms.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from .coordinator import LuxtronikCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 # Entity platforms: sensor (Phase 6), select + number (Phase 7).
-PLATFORMS: list[str] = ["sensor", "select", "number"]
+PLATFORMS: list[str] = ["sensor", "select", "number", "button"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

@@ -12,3 +12,6 @@ MODEL = "Luxtronik 2.0"
 
 # Write rate limiting — protects Luxtronik controller NAND flash (CTRL-04, D-05)
 WRITE_RATE_LIMIT_SECONDS = 60
+
+# Directory name (relative to HA config dir) for parameter backup JSON files.
+BACKUP_DIR = "luxtronik2_backups"
