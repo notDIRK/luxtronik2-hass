@@ -60,6 +60,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # the controller comes back online.
     await coordinator.async_config_entry_first_refresh()
 
+    # Register update listener before storing the coordinator.
+    # When the Options Flow saves new values (host or poll_interval),
+    # HA fires this listener, triggering a full unload+setup cycle so the
+    # coordinator reconnects with the updated settings immediately.
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
     # D-12: Store coordinator keyed by entry_id so entity platforms can retrieve it.
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
@@ -89,3 +95,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the config entry when options change.
+
+    Triggered by the Options Flow saving new values (host or poll_interval).
+    A full reload recreates the coordinator with the updated host/port and
+    poll interval, ensuring the new settings take effect immediately.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry that was updated.
+    """
+    await hass.config_entries.async_reload(entry.entry_id)
