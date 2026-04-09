@@ -8,8 +8,8 @@ Wires the config entry lifecycle to the LuxtronikCoordinator:
   platforms.
 - D-13: ``async_unload_entry`` unloads all entity platforms and removes the
   coordinator from ``hass.data``.
-- D-14: ``PLATFORMS`` is an empty list for now. Phases 6 and 7 add the
-  ``sensor``, ``select``, and ``number`` platforms here.
+- D-14: ``PLATFORMS`` lists the ``sensor``, ``select``, and ``number`` entity
+  platforms.
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ from .coordinator import LuxtronikCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# D-14: Platform list — sensor platform added in Phase 6. select/number come in Phase 7.
-PLATFORMS: list[str] = ["sensor"]
+# Entity platforms: sensor (Phase 6), select + number (Phase 7).
+PLATFORMS: list[str] = ["sensor", "select", "number"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -63,7 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # D-12: Store coordinator keyed by entry_id so entity platforms can retrieve it.
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
-    # D-14: Forward to entity platforms (none registered yet; populated in Phases 6-7).
+    # D-14: Forward to entity platforms (sensor, select, number).
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
