@@ -20,6 +20,25 @@
       "already_configured_benPru": "A BenPru/luxtronik integration is already connected to this IP address. Running both integrations simultaneously will cause connection conflicts. Remove the luxtronik integration first."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Luxtronik 2.0 Settings",
+        "description": "Adjust connection settings for your heat pump controller.",
+        "data": {
+          "host": "IP Address",
+          "poll_interval": "Poll Interval (seconds)"
+        },
+        "data_description": {
+          "host": "Local IP address or hostname of the Luxtronik 2.0 controller",
+          "poll_interval": "How often to read data from the heat pump (10-300 seconds, default 30)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the heat pump. Check the IP address and make sure the controller is reachable on port 8889."
+    }
+  },
   "entity": {
     "select": {
       "heating_mode": {

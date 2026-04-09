@@ -20,6 +20,25 @@
       "already_configured_benPru": "Eine BenPru/luxtronik-Integration ist bereits mit dieser IP-Adresse verbunden. Der gleichzeitige Betrieb beider Integrationen verursacht Verbindungskonflikte. Entfernen Sie zuerst die luxtronik-Integration."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Luxtronik 2.0 Einstellungen",
+        "description": "Verbindungseinstellungen fuer den Waermepumpen-Regler anpassen.",
+        "data": {
+          "host": "IP-Adresse",
+          "poll_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "host": "Lokale IP-Adresse oder Hostname des Luxtronik 2.0 Reglers",
+          "poll_interval": "Wie oft Daten von der Waermepumpe gelesen werden (10-300 Sekunden, Standard 30)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zur Waermepumpe nicht moeglich. Pruefen Sie die IP-Adresse und stellen Sie sicher, dass der Regler auf Port 8889 erreichbar ist."
+    }
+  },
   "entity": {
     "select": {
       "heating_mode": {
