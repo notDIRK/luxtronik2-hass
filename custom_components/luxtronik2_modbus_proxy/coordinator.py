@@ -2,9 +2,15 @@
 
 Implements a DataUpdateCoordinator that polls the Luxtronik 2.0 heat pump
 controller using the connect-per-call pattern. Each poll cycle creates a new
-luxtronik.Luxtronik instance, reads all data, extracts raw integer values, and
-discards the instance — releasing the single TCP connection on port 8889 so that
-other tools (e.g., the BenPru/luxtronik HA integration) can coexist.
+luxtronik.Luxtronik instance, reads all data and write parameter updates,
+extracts raw integer values, and discards the instance — releasing the single
+TCP connection on port 8889 so that other tools (e.g., the BenPru/luxtronik HA
+integration) can coexist.
+
+Write operations use the same connect-per-call pattern and are serialized via
+the same asyncio.Lock as reads. Per-parameter rate limiting (CTRL-04) enforces
+a 60-second minimum interval between writes to the same parameter index, protecting
+the Luxtronik controller NAND flash from excessive write cycles.
 
 Architecture constraints enforced here:
 - ARCH-01: Connect-per-call pattern via ``luxtronik.Luxtronik.__new__`` to avoid
@@ -20,6 +26,7 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import logging
+import time
 
 import luxtronik
 
@@ -27,7 +34,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DOMAIN
+from .const import DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DOMAIN, WRITE_RATE_LIMIT_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,6 +81,9 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         # ARCH-03: Single lock serializes all TCP access. Created here so Phase 7
         # write methods acquire the same lock without restructuring the coordinator.
         self._lock = asyncio.Lock()
+        # CTRL-04, D-04: Per-parameter write timestamp tracking for rate limiting.
+        # Same pattern as PollingEngine._write_timestamps in the proxy codebase.
+        self._write_timestamps: dict[int, float] = {}
 
         super().__init__(
             hass,
@@ -164,3 +174,92 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
             len(calculations),
         )
         return {"parameters": parameters, "calculations": calculations}
+
+    async def async_write_parameter(self, index: int, value: int) -> None:
+        """Write a single parameter to the Luxtronik controller.
+
+        Convenience wrapper around async_write_parameters for single-parameter
+        writes. Acquires the lock, checks rate limit, writes, and triggers
+        a coordinator refresh. (D-01)
+
+        Args:
+            index: Luxtronik parameter index (e.g., 3 for HeatingMode).
+            value: Raw integer value to write (heatpump format).
+        """
+        await self.async_write_parameters({index: value})
+
+    async def async_write_parameters(self, params: dict[int, int]) -> None:
+        """Write multiple parameters atomically within a single lock acquisition.
+
+        Used by SG-Ready which writes parameters 3 and 4 simultaneously (D-11, D-12).
+        Rate limiting is checked per-parameter; any rate-limited parameter is
+        silently skipped with a warning log (D-05). If all parameters are rate-limited,
+        no write occurs and no refresh is triggered.
+
+        Args:
+            params: Dict of Luxtronik parameter index -> raw integer value to write.
+        """
+        async with self._lock:
+            now = time.time()
+            writes_to_send: dict[int, int] = {}
+            for index, value in params.items():
+                last_write = self._write_timestamps.get(index, 0.0)
+                if now - last_write < WRITE_RATE_LIMIT_SECONDS:
+                    _LOGGER.warning(
+                        "Write to parameter %d rate-limited (%.1fs remaining)",
+                        index,
+                        WRITE_RATE_LIMIT_SECONDS - (now - last_write),
+                    )
+                    continue
+                writes_to_send[index] = value
+
+            if not writes_to_send:
+                return
+
+            try:
+                await self.hass.async_add_executor_job(
+                    self._sync_write, writes_to_send
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Error writing parameters %s to Luxtronik at %s: %s",
+                    writes_to_send,
+                    self._host,
+                    err,
+                )
+                raise
+
+            # Update timestamps for accepted writes
+            for index in writes_to_send:
+                self._write_timestamps[index] = now
+
+        # Trigger immediate refresh so entities reflect the new value (D-01)
+        await self.async_request_refresh()
+
+    def _sync_write(self, param_writes: dict[int, int]) -> None:
+        """Write parameters to the Luxtronik controller (runs in executor).
+
+        Creates a fresh Luxtronik instance, populates the write queue, and
+        calls write(). Connect-per-call pattern — no persistent socket. (D-02, ARCH-01)
+
+        Args:
+            param_writes: Dict of Luxtronik parameter index -> raw integer value.
+        """
+        lux = luxtronik.Luxtronik.__new__(luxtronik.Luxtronik)
+        lux._host = self._host
+        lux._port = self._port
+        lux._socket = None
+        lux.calculations = luxtronik.Calculations()
+        lux.parameters = luxtronik.Parameters()
+        lux.visibilities = luxtronik.Visibilities()
+
+        # CRITICAL: Populate the write queue BEFORE calling write().
+        # The write() method reads parameters.queue synchronously at call time.
+        # (Pitfall 3 from RESEARCH.md)
+        lux.parameters.queue = dict(param_writes)
+        lux.write()
+
+        _LOGGER.info(
+            "Luxtronik write complete: %s",
+            {idx: val for idx, val in param_writes.items()},
+        )
