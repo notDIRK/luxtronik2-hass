@@ -40,9 +40,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from luxtronik2_modbus_proxy.register_definitions.calculations import INPUT_REGISTERS
-from luxtronik2_modbus_proxy.register_definitions.parameters import HOLDING_REGISTERS
-
 from .const import DOMAIN, MANUFACTURER, MODEL
 from .coordinator import LuxtronikCoordinator
 
@@ -241,42 +238,41 @@ _CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
     """Build disabled-by-default descriptions for non-core calculations.
 
-    Iterates all 251 entries in INPUT_REGISTERS, skipping the 10 core indices
-    already covered by CORE_SENSOR_DESCRIPTIONS. Each description uses
-    entity_registry_enabled_default=False (D-08) and EntityCategory.DIAGNOSTIC.
+    Iterates all 251 calculation objects from the luxtronik library, skipping
+    the 10 core indices already covered by CORE_SENSOR_DESCRIPTIONS. Each
+    description uses entity_registry_enabled_default=False (D-08) and
+    EntityCategory.DIAGNOSTIC.
 
     Returns:
         A tuple of LuxtronikSensorEntityDescription, one per non-core calculation.
     """
     descs: list[LuxtronikSensorEntityDescription] = []
-    for idx, calc_def in INPUT_REGISTERS.items():
-        if idx in _CORE_CALC_INDICES:
+    for idx, calc_obj in _lux_calcs.calculations.items():
+        if idx in _CORE_CALC_INDICES or calc_obj is None:
+            continue
+        if not hasattr(calc_obj, "from_heatpump"):
             continue
 
-        # Determine device class and unit from luxtronik data_type string.
+        # Determine device class and unit from luxtronik type name.
+        data_type = type(calc_obj).__name__
         device_class: SensorDeviceClass | None = None
         unit: str | None = None
         state_class: SensorStateClass | None = None
-        if calc_def.data_type == "Celsius":
+        if data_type == "Celsius":
             device_class = SensorDeviceClass.TEMPERATURE
             unit = "°C"
             state_class = SensorStateClass.MEASUREMENT
-        elif calc_def.data_type == "Power":
+        elif data_type == "Power":
             device_class = SensorDeviceClass.POWER
             unit = "W"
             state_class = SensorStateClass.MEASUREMENT
 
-        # Capture value_fn from the library object for this index.
-        # The luxtronik library may have None at some indices — guard with hasattr.
-        lib_obj = _lux_calcs.calculations.get(idx)
-        value_fn: Callable[[int], Any] | None = None
-        if lib_obj is not None and hasattr(lib_obj, "from_heatpump"):
-            value_fn = lib_obj.from_heatpump
+        calc_name = getattr(calc_obj, "name", f"Calculation {idx}")
 
         descs.append(
             LuxtronikSensorEntityDescription(
                 key=f"calc_{idx}",
-                name=f"Luxtronik {calc_def.name}",  # D-11: derived from library name
+                name=f"Luxtronik {calc_name}",  # D-11: derived from library name
                 device_class=device_class,
                 native_unit_of_measurement=unit,
                 state_class=state_class,
@@ -284,7 +280,7 @@ def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, 
                 entity_category=EntityCategory.DIAGNOSTIC,
                 data_source="calculations",
                 lux_index=idx,
-                value_fn=value_fn,
+                value_fn=calc_obj.from_heatpump,
             )
         )
     return tuple(descs)
@@ -293,33 +289,35 @@ def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, 
 def _build_param_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
     """Build disabled-by-default descriptions for all 1,126 parameters.
 
-    Iterates all entries in HOLDING_REGISTERS. Each description uses
-    entity_registry_enabled_default=False (D-08) and EntityCategory.DIAGNOSTIC.
+    Iterates all parameter objects from the luxtronik library. Each description
+    uses entity_registry_enabled_default=False (D-08) and EntityCategory.DIAGNOSTIC.
 
     Returns:
         A tuple of LuxtronikSensorEntityDescription, one per parameter.
     """
     descs: list[LuxtronikSensorEntityDescription] = []
-    for idx, param_def in HOLDING_REGISTERS.items():
-        # Determine device class and unit from luxtronik data_type string.
+    for idx, param_obj in _lux_params.parameters.items():
+        if param_obj is None:
+            continue
+        if not hasattr(param_obj, "from_heatpump"):
+            continue
+
+        # Determine device class and unit from luxtronik type name.
+        data_type = type(param_obj).__name__
         device_class: SensorDeviceClass | None = None
         unit: str | None = None
         state_class: SensorStateClass | None = None
-        if param_def.data_type == "Celsius":
+        if data_type == "Celsius":
             device_class = SensorDeviceClass.TEMPERATURE
             unit = "°C"
             state_class = SensorStateClass.MEASUREMENT
 
-        # Capture value_fn from the library object for this parameter index.
-        lib_obj = _lux_params.parameters.get(idx)
-        value_fn: Callable[[int], Any] | None = None
-        if lib_obj is not None and hasattr(lib_obj, "from_heatpump"):
-            value_fn = lib_obj.from_heatpump
+        param_name = getattr(param_obj, "name", f"Parameter {idx}")
 
         descs.append(
             LuxtronikSensorEntityDescription(
                 key=f"param_{idx}",
-                name=f"Luxtronik {param_def.name}",  # D-11: derived from library name
+                name=f"Luxtronik {param_name}",  # D-11: derived from library name
                 device_class=device_class,
                 native_unit_of_measurement=unit,
                 state_class=state_class,
@@ -327,7 +325,7 @@ def _build_param_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
                 entity_category=EntityCategory.DIAGNOSTIC,
                 data_source="parameters",
                 lux_index=idx,
-                value_fn=value_fn,
+                value_fn=param_obj.from_heatpump,
             )
         )
     return tuple(descs)
