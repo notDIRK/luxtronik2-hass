@@ -226,6 +226,52 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         lux_index=257,
         value_fn=_lux_calcs.calculations[257].from_heatpump,  # D-04, D-17
     ),
+    # Operating hours — enabled by default, every WP owner needs these.
+    # Luxtronik stores seconds; from_heatpump() converts to hours (float).
+    # Calculation index 56: Compressor 1 operating hours (ID_WEB_Zaehler_BetrZeitVD1)
+    LuxtronikSensorEntityDescription(
+        key="operating_hours_compressor",
+        name="Luxtronik Compressor Operating Hours",
+        icon="mdi:timer-cog",
+        native_unit_of_measurement="h",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        data_source="calculations",
+        lux_index=56,
+        value_fn=_lux_calcs.calculations[56].from_heatpump,
+    ),
+    # Calculation index 63: Total heat pump operating hours (ID_WEB_Zaehler_BetrZeitWP)
+    LuxtronikSensorEntityDescription(
+        key="operating_hours_heatpump",
+        name="Luxtronik Heat Pump Operating Hours",
+        icon="mdi:timer",
+        native_unit_of_measurement="h",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        data_source="calculations",
+        lux_index=63,
+        value_fn=_lux_calcs.calculations[63].from_heatpump,
+    ),
+    # Calculation index 64: Heating circuit operating hours (ID_WEB_Zaehler_BetrZeitHz)
+    LuxtronikSensorEntityDescription(
+        key="operating_hours_heating",
+        name="Luxtronik Heating Operating Hours",
+        icon="mdi:radiator",
+        native_unit_of_measurement="h",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        data_source="calculations",
+        lux_index=64,
+        value_fn=_lux_calcs.calculations[64].from_heatpump,
+    ),
+    # Calculation index 65: Hot water operating hours (ID_WEB_Zaehler_BetrZeitBW)
+    LuxtronikSensorEntityDescription(
+        key="operating_hours_hot_water",
+        name="Luxtronik Hot Water Operating Hours",
+        icon="mdi:water-boiler",
+        native_unit_of_measurement="h",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        data_source="calculations",
+        lux_index=65,
+        value_fn=_lux_calcs.calculations[65].from_heatpump,
+    ),
 )
 
 # ---------------------------------------------------------------------------
@@ -234,7 +280,7 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
 # These 10 indices are already covered by CORE_SENSOR_DESCRIPTIONS above.
 # ---------------------------------------------------------------------------
 
-_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 80, 257})
+_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 56, 63, 64, 65, 80, 257})
 
 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
