@@ -25,8 +25,8 @@ from .coordinator import LuxtronikCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# D-14: Platform list — empty until sensor/select/number entities are added in Phases 6-7.
-PLATFORMS: list[str] = []
+# D-14: Platform list — sensor platform added in Phase 6. select/number come in Phase 7.
+PLATFORMS: list[str] = ["sensor"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
