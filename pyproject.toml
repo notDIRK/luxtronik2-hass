@@ -1,11 +1,22 @@
 [project]
 name = "luxtronik2-modbus-proxy"
-version = "0.1.0"
+version = "1.1.0"
 description = "Modbus TCP proxy for Luxtronik 2.0 heat pump controllers"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 readme = "README.md"
 keywords = ["luxtronik", "modbus", "heat-pump", "evcc", "home-assistant"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Home Automation",
+    "Topic :: System :: Networking",
+]
 dependencies = [
     "luxtronik==0.3.14",
     "pymodbus==3.12.1",
@@ -26,6 +37,12 @@ dev = [
     "ruff",
     "mypy",
 ]
+
+[project.urls]
+Homepage = "https://github.com/OWNER/luxtronik2-modbus-proxy"
+Repository = "https://github.com/OWNER/luxtronik2-modbus-proxy"
+Documentation = "https://OWNER.github.io/luxtronik2-modbus-proxy"
+"Bug Tracker" = "https://github.com/OWNER/luxtronik2-modbus-proxy/issues"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
