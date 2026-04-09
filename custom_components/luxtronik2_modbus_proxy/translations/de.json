@@ -1,0 +1,64 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindung zur Luxtronik 2.0",
+        "description": "Geben Sie die IP-Adresse des Waermepumpen-Reglers ein.",
+        "data": {
+          "host": "IP-Adresse"
+        },
+        "data_description": {
+          "host": "Lokale IP-Adresse des Luxtronik 2.0 Reglers (z.B. 192.168.x.x)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zur Waermepumpe nicht moeglich. Pruefen Sie die IP-Adresse und stellen Sie sicher, dass der Regler auf Port 8889 erreichbar ist."
+    },
+    "abort": {
+      "already_configured": "Diese Waermepumpe ist bereits konfiguriert.",
+      "already_configured_benPru": "Eine BenPru/luxtronik-Integration ist bereits mit dieser IP-Adresse verbunden. Der gleichzeitige Betrieb beider Integrationen verursacht Verbindungskonflikte. Entfernen Sie zuerst die luxtronik-Integration."
+    }
+  },
+  "entity": {
+    "select": {
+      "heating_mode": {
+        "name": "Heizmodus",
+        "state": {
+          "automatic": "Automatik",
+          "second_heatsource": "Zweiter Waermeerzeuger",
+          "party": "Party",
+          "holidays": "Urlaub",
+          "off": "Aus"
+        }
+      },
+      "hot_water_mode": {
+        "name": "Warmwassermodus",
+        "state": {
+          "automatic": "Automatik",
+          "second_heatsource": "Zweiter Waermeerzeuger",
+          "party": "Party",
+          "holidays": "Urlaub",
+          "off": "Aus"
+        }
+      },
+      "sg_ready": {
+        "name": "SG Ready",
+        "state": {
+          "off_mode_0": "Aus (Modus 0)",
+          "blocking_mode_1": "Sperrung (Modus 1)",
+          "standard_mode_2": "Normal (Modus 2)",
+          "boost_mode_3": "Verstaerkt (Modus 3)"
+        }
+      }
+    },
+    "number": {
+      "hot_water_setpoint": {
+        "name": "Warmwasser-Solltemperatur"
+      },
+      "heating_curve_offset": {
+        "name": "Heizkurven-Verschiebung"
+      }
+    }
+  }
+}

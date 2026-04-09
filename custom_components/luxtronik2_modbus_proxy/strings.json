@@ -19,5 +19,46 @@
       "already_configured": "This heat pump is already configured.",
       "already_configured_benPru": "A BenPru/luxtronik integration is already connected to this IP address. Running both integrations simultaneously will cause connection conflicts. Remove the luxtronik integration first."
     }
+  },
+  "entity": {
+    "select": {
+      "heating_mode": {
+        "name": "Heating Mode",
+        "state": {
+          "automatic": "Automatic",
+          "second_heatsource": "Second Heatsource",
+          "party": "Party",
+          "holidays": "Holidays",
+          "off": "Off"
+        }
+      },
+      "hot_water_mode": {
+        "name": "Hot Water Mode",
+        "state": {
+          "automatic": "Automatic",
+          "second_heatsource": "Second Heatsource",
+          "party": "Party",
+          "holidays": "Holidays",
+          "off": "Off"
+        }
+      },
+      "sg_ready": {
+        "name": "SG Ready",
+        "state": {
+          "off_mode_0": "Off (Mode 0)",
+          "blocking_mode_1": "Blocking (Mode 1)",
+          "standard_mode_2": "Standard (Mode 2)",
+          "boost_mode_3": "Boost (Mode 3)"
+        }
+      }
+    },
+    "number": {
+      "hot_water_setpoint": {
+        "name": "Hot Water Setpoint"
+      },
+      "heating_curve_offset": {
+        "name": "Heating Curve Offset"
+      }
+    }
   }
 }
