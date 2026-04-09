@@ -1,7 +1,7 @@
 {
   "domain": "luxtronik2_modbus_proxy",
   "name": "Luxtronik 2 Modbus Proxy",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "requirements": ["luxtronik==0.3.14"],
