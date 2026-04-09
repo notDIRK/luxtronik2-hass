@@ -122,7 +122,7 @@ class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         Returns:
             A LuxtronikOptionsFlow instance bound to the config entry.
         """
-        return LuxtronikOptionsFlow(config_entry)
+        return LuxtronikOptionsFlow()
 
     @staticmethod
     def _test_connection(host: str, port: int) -> None:
@@ -168,15 +168,6 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
     data dict. The update listener in __init__.py then triggers a full config
     entry reload so the coordinator reconnects with the new settings.
     """
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize the options flow with the existing config entry.
-
-        Args:
-            config_entry: The config entry being reconfigured. Used to pre-fill
-                the form with the current host and poll_interval values.
-        """
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
