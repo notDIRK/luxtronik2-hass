@@ -272,6 +272,33 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         lux_index=65,
         value_fn=_lux_calcs.calculations[65].from_heatpump,
     ),
+    # Status display — what the Luxtronik main menu shows.
+    # calc[117]: Status line 1 (e.g., "heatpump idle", "heatpump running")
+    LuxtronikSensorEntityDescription(
+        key="status_line_1",
+        name="Luxtronik Status",
+        icon="mdi:information-outline",
+        data_source="calculations",
+        lux_index=117,
+        value_fn=lambda raw: (
+            _lux_calcs.calculations[117].from_heatpump(raw).replace("_", " ").title()
+            if _lux_calcs.calculations[117].from_heatpump(raw) is not None
+            else None
+        ),
+    ),
+    # calc[120]: Time in current status (seconds since last mode change).
+    # Shows how long the WP has been in the current operating state.
+    LuxtronikSensorEntityDescription(
+        key="status_since_seconds",
+        name="Luxtronik Status Duration",
+        icon="mdi:timer-sand",
+        native_unit_of_measurement="s",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        data_source="calculations",
+        lux_index=120,
+        value_fn=_lux_calcs.calculations[120].from_heatpump,
+    ),
 )
 
 # ---------------------------------------------------------------------------
@@ -280,7 +307,7 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
 # These 10 indices are already covered by CORE_SENSOR_DESCRIPTIONS above.
 # ---------------------------------------------------------------------------
 
-_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 56, 63, 64, 65, 80, 257})
+_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 56, 63, 64, 65, 80, 117, 120, 257})
 
 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
