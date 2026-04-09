@@ -8,5 +8,5 @@
   "codeowners": ["@OWNER"],
   "documentation": "https://github.com/OWNER/luxtronik2-modbus-proxy",
   "issue_tracker": "https://github.com/OWNER/luxtronik2-modbus-proxy/issues",
-  "config_flow": false
+  "config_flow": true
 }
