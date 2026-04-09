@@ -107,6 +107,24 @@ class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> "LuxtronikOptionsFlow":
+        """Return the options flow handler for this integration.
+
+        Called by HA when the user clicks "Configure" on the integration card
+        in Settings > Devices & Services. Returns the options flow that lets
+        users update host and poll_interval without removing the integration.
+
+        Args:
+            config_entry: The existing config entry to reconfigure.
+
+        Returns:
+            A LuxtronikOptionsFlow instance bound to the config entry.
+        """
+        return LuxtronikOptionsFlow(config_entry)
+
+    @staticmethod
     def _test_connection(host: str, port: int) -> None:
         """Test connectivity to the Luxtronik 2.0 controller.
 
@@ -137,3 +155,98 @@ class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         lux.parameters = luxtronik.Parameters()
         lux.visibilities = luxtronik.Visibilities()
         lux.read()  # blocking — OK, running in executor thread
+
+
+class LuxtronikOptionsFlow(config_entries.OptionsFlow):
+    """Handle the Luxtronik 2 Modbus Proxy options flow.
+
+    Allows users to reconfigure the heat pump IP address and poll interval
+    from Settings > Devices & Services > Luxtronik 2 Modbus Proxy > Configure,
+    without removing and re-adding the integration.
+
+    On save, changes are persisted via async_update_entry into the config entry
+    data dict. The update listener in __init__.py then triggers a full config
+    entry reload so the coordinator reconnects with the new settings.
+    """
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize the options flow with the existing config entry.
+
+        Args:
+            config_entry: The config entry being reconfigured. Used to pre-fill
+                the form with the current host and poll_interval values.
+        """
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Handle the options form step.
+
+        Pre-fills the form with current values from the config entry. On
+        submission, strips whitespace from host, runs a connection test if the
+        host changed, persists the new values via async_update_entry, and
+        returns async_create_entry to signal completion.
+
+        Args:
+            user_input: Form data supplied by HA's UI, or None on first render.
+
+        Returns:
+            A FlowResult — either show_form to re-render with errors, or
+            async_create_entry to finish and trigger the update listener.
+        """
+        errors: dict[str, str] = {}
+
+        current_host: str = self.config_entry.data[CONF_HOST]
+        current_poll_interval: int = self.config_entry.options.get(
+            "poll_interval",
+            self.config_entry.data.get("poll_interval", DEFAULT_POLL_INTERVAL),
+        )
+
+        if user_input is not None:
+            host: str = user_input[CONF_HOST].strip()
+            poll_interval: int = user_input["poll_interval"]
+
+            # Only test the connection if the host has changed.
+            # Avoids unnecessary network I/O when the user only changes the interval.
+            if host != current_host:
+                try:
+                    await self.hass.async_add_executor_job(
+                        LuxtronikConfigFlow._test_connection, host, DEFAULT_PORT
+                    )
+                except Exception:
+                    _LOGGER.debug(
+                        "Options flow connection test failed for Luxtronik at %s:%d",
+                        host,
+                        DEFAULT_PORT,
+                    )
+                    errors["base"] = "cannot_connect"
+
+            if not errors:
+                # Persist both host and poll_interval into the config entry data dict.
+                # The update listener in __init__.py will reload the entry so the
+                # coordinator picks up the new values immediately.
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    data={
+                        **self.config_entry.data,
+                        CONF_HOST: host,
+                        "port": DEFAULT_PORT,
+                        "poll_interval": poll_interval,
+                    },
+                )
+                # Return empty options dict — all data is stored in entry.data above.
+                return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_HOST, default=current_host): str,
+                    vol.Required(
+                        "poll_interval", default=current_poll_interval
+                    ): vol.All(int, vol.Range(min=10, max=300)),
+                }
+            ),
+            errors=errors,
+        )
