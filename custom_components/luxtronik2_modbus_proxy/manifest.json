@@ -4,9 +4,9 @@
   "version": "1.1.0",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "requirements": ["luxtronik==0.3.14", "luxtronik2-modbus-proxy==1.1.0"],
-  "codeowners": ["@OWNER"],
-  "documentation": "https://github.com/OWNER/luxtronik2-modbus-proxy",
-  "issue_tracker": "https://github.com/OWNER/luxtronik2-modbus-proxy/issues",
+  "requirements": ["luxtronik==0.3.14"],
+  "codeowners": ["@notDIRK"],
+  "documentation": "https://github.com/notDIRK/luxtronik2-modbus-proxy",
+  "issue_tracker": "https://github.com/notDIRK/luxtronik2-modbus-proxy/issues",
   "config_flow": true
 }
