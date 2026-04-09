@@ -40,7 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Entity description dataclass
+# LuxtronikNumberEntityDescription
 # ---------------------------------------------------------------------------
 
 
@@ -59,7 +59,7 @@ class LuxtronikNumberEntityDescription(NumberEntityDescription):
 
 
 # ---------------------------------------------------------------------------
-# Entity descriptions
+# Number entity descriptions
 # ---------------------------------------------------------------------------
 
 NUMBER_DESCRIPTIONS: tuple[LuxtronikNumberEntityDescription, ...] = (
@@ -97,7 +97,7 @@ NUMBER_DESCRIPTIONS: tuple[LuxtronikNumberEntityDescription, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Entity class
+# LuxtronikNumberEntity
 # ---------------------------------------------------------------------------
 
 

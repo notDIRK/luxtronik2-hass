@@ -33,7 +33,7 @@ from .coordinator import LuxtronikCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Value maps
+# Value maps — module-level constants
 # ---------------------------------------------------------------------------
 
 # HeatingMode and HotWaterMode share the same code-to-option mapping.
@@ -73,7 +73,7 @@ SG_READY_MODE_MAP: dict[int, dict[int, int]] = {
 
 
 # ---------------------------------------------------------------------------
-# Entity description dataclass
+# LuxtronikSelectEntityDescription
 # ---------------------------------------------------------------------------
 
 
@@ -96,7 +96,7 @@ class LuxtronikSelectEntityDescription(SelectEntityDescription):
 
 
 # ---------------------------------------------------------------------------
-# Entity descriptions
+# Select entity descriptions
 # ---------------------------------------------------------------------------
 
 SELECT_DESCRIPTIONS: tuple[LuxtronikSelectEntityDescription, ...] = (
@@ -129,7 +129,7 @@ SELECT_DESCRIPTIONS: tuple[LuxtronikSelectEntityDescription, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Entity class
+# LuxtronikSelectEntity
 # ---------------------------------------------------------------------------
 
 
