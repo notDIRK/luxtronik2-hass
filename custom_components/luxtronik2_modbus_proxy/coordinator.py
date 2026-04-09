@@ -151,22 +151,30 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         lux.read()  # blocking — OK, we are running in the executor thread
 
         # Extract raw integer values for all parameters (read/write Luxtronik params).
-        # to_heatpump() converts the library's internal value back to the wire-format
-        # integer (e.g., 200 for 20.0 degC, 2 for HeatingMode "Party").
+        # lux.parameters.parameters is a dict[int, TypedParam] where values are typed
+        # objects (Celsius, HeatingMode, etc.) with .value and .to_heatpump() methods.
+        # to_heatpump() converts back to wire-format integer (e.g., 550 for 55.0 degC).
         parameters: dict[int, int] = {}
-        for idx, param in enumerate(lux.parameters.parameters):
-            if param is not None:
-                raw = param.to_heatpump(param.value)
-                if raw is not None:
-                    parameters[idx] = int(raw)
+        for idx, param in lux.parameters.parameters.items():
+            if param is not None and hasattr(param, "to_heatpump"):
+                try:
+                    raw = param.to_heatpump(param.value)
+                    if raw is not None:
+                        parameters[idx] = int(raw)
+                except (TypeError, ValueError, AttributeError):
+                    pass
 
         # Extract raw integer values for all calculations (read-only Luxtronik data).
+        # Same structure: dict[int, TypedCalc] with .value and .to_heatpump().
         calculations: dict[int, int] = {}
-        for idx, calc in enumerate(lux.calculations.calculations):
-            if calc is not None:
-                raw = calc.to_heatpump(calc.value)
-                if raw is not None:
-                    calculations[idx] = int(raw)
+        for idx, calc in lux.calculations.calculations.items():
+            if calc is not None and hasattr(calc, "to_heatpump"):
+                try:
+                    raw = calc.to_heatpump(calc.value)
+                    if raw is not None:
+                        calculations[idx] = int(raw)
+                except (TypeError, ValueError, AttributeError):
+                    pass
 
         _LOGGER.debug(
             "Luxtronik read complete: %d parameters, %d calculations",
