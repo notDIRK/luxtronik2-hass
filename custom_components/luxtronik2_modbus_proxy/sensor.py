@@ -211,6 +211,62 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
             "Running" if _lux_calcs.calculations[39].from_heatpump(raw) else "Stopped"
         ),
     ),
+    # Pump status sensors — enabled by default, essential for monitoring.
+    # calc[38]: Hot water circulation pump (BUP - Brauchwasser-Umwälzpumpe)
+    LuxtronikSensorEntityDescription(
+        key="hot_water_pump",
+        name="Luxtronik Hot Water Pump",
+        icon="mdi:pump",
+        data_source="calculations",
+        lux_index=38,
+        value_fn=lambda raw: (
+            "Running" if _lux_calcs.calculations[38].from_heatpump(raw) else "Stopped"
+        ),
+    ),
+    # calc[46]: Circulation pump (ZIP - Zirkulationspumpe)
+    LuxtronikSensorEntityDescription(
+        key="circulation_pump_zip",
+        name="Luxtronik Circulation Pump ZIP",
+        icon="mdi:pump",
+        data_source="calculations",
+        lux_index=46,
+        value_fn=lambda raw: (
+            "Running" if _lux_calcs.calculations[46].from_heatpump(raw) else "Stopped"
+        ),
+    ),
+    # calc[43]: Brine/source pump (VBO - Verdampfer/Solepumpe)
+    LuxtronikSensorEntityDescription(
+        key="brine_pump",
+        name="Luxtronik Brine Pump",
+        icon="mdi:pump",
+        data_source="calculations",
+        lux_index=43,
+        value_fn=lambda raw: (
+            "Running" if _lux_calcs.calculations[43].from_heatpump(raw) else "Stopped"
+        ),
+    ),
+    # calc[47]: Additional circulation pump (ZUP - Zusatz-Umwälzpumpe)
+    LuxtronikSensorEntityDescription(
+        key="additional_pump",
+        name="Luxtronik Additional Pump",
+        icon="mdi:pump",
+        data_source="calculations",
+        lux_index=47,
+        value_fn=lambda raw: (
+            "Running" if _lux_calcs.calculations[47].from_heatpump(raw) else "Stopped"
+        ),
+    ),
+    # calc[40]: Mixer heating circuit 1 open (MA1out)
+    LuxtronikSensorEntityDescription(
+        key="mixer_hk1",
+        name="Luxtronik Mixer HK1",
+        icon="mdi:valve",
+        data_source="calculations",
+        lux_index=40,
+        value_fn=lambda raw: (
+            "Open" if _lux_calcs.calculations[40].from_heatpump(raw) else "Closed"
+        ),
+    ),
     # SENS-03, D-04: Heat pump power output — calculation index 257 (Heat_Output).
     # from_heatpump() returns int in Watts.
     # CONDITIONAL: Only added to entities if index 257 exists in coordinator.data.
@@ -307,7 +363,7 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
 # These 10 indices are already covered by CORE_SENSOR_DESCRIPTIONS above.
 # ---------------------------------------------------------------------------
 
-_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 39, 44, 56, 63, 64, 65, 80, 117, 120, 257})
+_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 38, 39, 40, 43, 44, 46, 47, 56, 63, 64, 65, 80, 117, 120, 257})
 
 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
