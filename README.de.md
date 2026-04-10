@@ -1,126 +1,105 @@
-<!--
-Keywords: home assistant, hacs, luxtronik, luxtronik 2, alpha innotec, novelan, buderus,
-nibe, roth, elco, wolf, wärmepumpe, waermepumpe, heat pump, modbus, modbus tcp, evcc,
-sg-ready, sg ready, wärmepumpen integration, ha custom component, sole wasser,
-wasser wasser, luft wasser, heizungssteuerung, energiemanagement, pv-überschuss,
-photovoltaik, smart home, homeassistant
--->
+# Luxtronik 2.0 — Home Assistant Integration
 
-> Read in English: [README.md](README.md)
+**Home Assistant ist der primäre, aktiv gepflegte Weg, dieses Projekt zu nutzen.** Dieses Repository enthält eine HACS-Custom-Integration, die direkt mit Luxtronik‑2.0‑Wärmepumpensteuerungen kommuniziert und sie als Home‑Assistant‑Entities bereitstellt. Ein separater Modbus‑TCP‑Proxy existiert nur noch als nicht gepflegter Legacy‑Nebenschauplatz für Nutzer, die explizit rohen Modbus‑Zugriff benötigen.
 
-![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
-![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Docker](https://img.shields.io/badge/docker-supported-blue)
-![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange)
-![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-41BDF5.svg)](https://www.home-assistant.io/)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-# Luxtronik 2.0 (Home Assistant) + Modbus-TCP-Proxy
+Wenn du eine Luxtronik‑2.0‑Wärmepumpe von **Alpha Innotec, Novelan, Buderus, Nibe, Roth, Elco oder Wolf** besitzt, installiere die HACS‑Integration weiter unten — das ist der unterstützte Weg.
 
-**Zwei Nutzungswege — such dir den passenden aus:**
-
-1. **Home Assistant HACS-Integration** (empfohlen für die meisten) — Installation in 2 Minuten über HACS, IP eingeben, fertig. Zeigt Sensoren, steuert Heiz-/Warmwassermodus/SG-Ready, sichert Parameter. **Kein Modbus-Proxy nötig.**
-2. **Standalone Modbus-TCP-Proxy** — für evcc, Grafana oder jedes andere Modbus-fähige Tool. Läuft als Docker-Container oder systemd-Dienst.
-
-Funktioniert mit **Alpha Innotec, Novelan, Buderus, Nibe, Roth, Elco und Wolf** Wärmepumpen mit Luxtronik-2.0-Regler — tausende Geräte ohne Firmware-Upgrade-Pfad.
-
-![Dashboard Beispiel](docs/images/dashboard-waermepumpe.png)
+[English version → README.md](README.md)
 
 ---
 
-## 🏠 Home Assistant Integration (HACS)
+## Drei Pfade
 
-**Du brauchst KEIN Modbus, KEIN evcc, nichts.** Die HACS-Integration spricht direkt mit deiner Wärmepumpe und stellt alles als native HA-Entitäten bereit.
+Dieses Projekt unterstützt drei Integrationspfade mit klar unterschiedlichem Reifegrad. Wähle den Pfad, der zu deinem Setup passt.
 
-### Was du sofort bekommst
+### Pfad 1: HACS Home Assistant Integration — ✅ Unterstützt
 
-| Kategorie | Entitäten |
-|-----------|-----------|
-| **Temperaturen** | Außen, Vorlauf, Rücklauf, Warmwasser, Sole Ein/Aus (6 Sensoren) |
-| **Status** | Betriebsmodus, EVU-Sperre, Status-Dauer, Kompressor, Pumpen |
-| **Pumpen** | Heizungs-Umwälzpumpe (HUP), Warmwasser-Umwälzpumpe (BUP), Zirkulationspumpe (ZIP), Zusatz-Umwälzpumpe (ZUP), Solepumpe (VBO), Mischer HK1 |
-| **Betriebsstunden** | Wärmepumpe gesamt, Verdichter, Heizkreis, Warmwasser |
-| **Steuerung** | Heizmodus, Warmwassermodus, SG-Ready, Warmwasser-Solltemperatur, Heizkurven-Verschiebung |
-| **Sicherung** | Ein-Klick Parameter-Sicherung als JSON-Datei |
-| **Erweiterbar** | +1.367 zusätzliche Parameter über die HA-Entitätsverwaltung aktivierbar |
+**Das ist der primäre Anwendungsfall und der einzige aktiv gepflegte Pfad.**
 
-Alle Entity-Namen und Übersetzungen auf **Deutsch und Englisch** (weitere Sprachen willkommen).
+- Installation als HACS *Custom Repository* mit `https://github.com/notDIRK/luxtronik2-hass`
+- Config‑Flow‑Oberfläche — nur die IP‑Adresse der Wärmepumpe eintragen, kein YAML
+- **31+ Entities** verfügbar: Temperaturen, Betriebsmodi, Leistung, Status, Sollwerte, SG‑Ready
+- Funktioniert mit Home Assistant **2024.1+** (getestet auf 2026.4.x)
+- Python 3.12+ Laufzeit (entspricht HA Core)
+- Spricht direkt mit der Wärmepumpe über die `luxtronik`-Bibliothek — keine zusätzlichen Dienste, keine Modbus‑Schicht
 
-### Installation in 2 Minuten
+**Installation:**
 
-1. HACS öffnen → **Integrationen** → **⋮** → **Benutzerdefinierte Repositories**
-2. `https://github.com/notDIRK/luxtronik2-hass` als Typ **Integration** hinzufügen
-3. Integration herunterladen, Home Assistant neu starten
-4. **Einstellungen → Geräte & Dienste → Integration hinzufügen → "Luxtronik 2.0 (Home Assistant)"**
-5. IP-Adresse der Wärmepumpe eingeben. Fertig.
+1. In Home Assistant → HACS → Integrationen → ⋮ Menü → *Benutzerdefinierte Repositories*
+2. `https://github.com/notDIRK/luxtronik2-hass` mit Kategorie **Integration** hinzufügen
+3. **Luxtronik 2.0 (Home Assistant)** installieren
+4. Home Assistant neu starten
+5. Einstellungen → Geräte & Dienste → *Integration hinzufügen* → nach **Luxtronik 2.0** suchen
+6. IP‑Adresse deiner Wärmepumpensteuerung eingeben
 
-### Beispiel-Dashboard
+### Pfad 2: Legacy Modbus TCP Proxy — ⚠️ Experimentell
 
-Ein fertiges Dashboard-YAML liegt unter [`docs/examples/dashboard-waermepumpe.yaml`](docs/examples/dashboard-waermepumpe.yaml) — kopiere es in den Raw-Konfigurationseditor eines neuen Dashboards und du bekommst den obigen Screenshot.
+**Nicht gepflegter Legacy‑Nebenschauplatz.** Dieser existierte als eigenständiger Proxy vor der HACS‑Integration. Er wird nicht mehr aktiv gepflegt und lebt in einem separaten **archivierten** Repository.
 
----
+Nutze diesen Pfad **nur**, wenn du explizit rohen Modbus‑TCP‑Zugriff brauchst — zum Beispiel für die Integration mit `evcc` oder einem anderen Modbus‑only‑Tool, das Home Assistant nicht ansprechen kann.
 
-## ⚙️ Standalone Modbus-TCP-Proxy
+- Repository: [notDIRK/luxtronik2-modbus-proxy](https://github.com/notDIRK/luxtronik2-modbus-proxy) (archiviert, schreibgeschützt)
+- Status: ⚠️ Experimentell — keine Bugfixes, keine neuen Features, kein Support
+- Technologie: Python‑Proxy, der das Luxtronik‑Binärprotokoll (Port 8889) nach Modbus TCP (Port 502) übersetzt
 
-Wenn du die Wärmepumpe mit **evcc**, Grafana oder einem anderen Modbus-TCP-Client **ohne** Home Assistant nutzen willst, starte den Standalone-Proxy.
+Falls du den Proxy aktuell **zusammen mit** der HACS‑Integration betreibst, solltest du vollständig auf Pfad 1 migrieren — die Integration deckt alle Entities ab, die der Proxy bereitgestellt hat, und vermeidet den Single‑Connection‑Engpass.
 
-### Architektur
+### Pfad 3: Home Assistant Add‑on — 📋 Geplant für v1.3
 
-```
-┌─────────────────────┐         ┌──────────────────────────┐
-│  Luxtronik 2.0      │         │  luxtronik2-hass         │
-│  Wärmepumpe         │ <────>  │                          │ <── evcc
-│  Regler             │         │  Modbus-TCP-Server       │
-│  Port 8889          │         │  Port 502                │ <── Grafana / andere
-└─────────────────────┘         └──────────────────────────┘
-  proprietäres Protokoll           Standard-Modbus-TCP
+Ein vollwertiges Home‑Assistant‑Add‑on (für HA OS und Supervised‑Installationen) ist **für v1.3 geplant**. Es wird die Integration als Supervisor‑Add‑on paketieren, sodass HA‑OS‑Nutzer es ohne HACS installieren können.
 
-Connect → Read/Write → Disconnect (läuft parallel zur HA-Integration)
-```
-
-### Schnellstart
-
-```bash
-cp config.example.yaml config.yaml
-# config.yaml bearbeiten: luxtronik_host auf die IP der Wärmepumpe setzen
-docker compose up -d
-```
-
-### Proxy-Funktionen
-
-- Modbus-TCP-Server mit Unterstützung für FC3, FC4, FC6, FC16
-- Connect-and-Release-Polling (läuft parallel zur HA-BenPru-Integration und zur HACS-Integration oben)
-- SG-Ready-Virtualregister für die Wärmepumpensteuerung mit evcc
-- 1.126 Luxtronik-Parameter per Name konfigurierbar
-- Konfiguration per YAML mit Überschreibung durch Umgebungsvariablen
-- Docker- und systemd-Deployment
-- Schreibratenbegrenzung zum Schutz des Regler-NAND-Flash
+Dieser Pfad ist **noch nicht verfügbar**. Den Fortschritt kannst du in den Repository‑Meilensteinen verfolgen.
 
 ---
 
-## 📚 Dokumentation
+## Funktionen (Pfad 1 — HACS‑Integration)
 
-- [Schnellstart](docs/de/quickstart.md) — Projekt klonen und starten
-- [Benutzerhandbuch](docs/de/user-guide.md) — Installation und Konfiguration (Docker)
-- [systemd-Dienst](docs/de/systemd.md) — Linux-Service-Installation
-- [evcc-Integration](docs/de/evcc-integration.md) — Wärmepumpensteuerung mit evcc
-- [Parallelbetrieb mit HA](docs/de/ha-coexistence.md) — Betrieb neben Home Assistant
+- **Lese‑Sensoren**: Vor‑/Rücklauftemperatur, Außentemperatur, Warmwassertemperatur, Betriebsstunden, Stromverbrauch, Fehlerzustände, SG‑Ready‑Status
+- **Steuer‑Entities**: Heizmodus, Warmwassermodus, SG‑Ready‑Modus, Temperatur‑Sollwerte
+- **Schreibratenbegrenzung** zum Schutz der Steuerung vor Befehlsfluten
+- **Single‑Connection‑sicher**: respektiert die One‑TCP‑Connection‑Beschränkung von Luxtronik 2.0 über Connect‑per‑Call + asyncio‑Lock
+- **Englische und deutsche Übersetzungen** eingebaut
+- **Stabile Entity‑IDs**: Entities verwenden das Gerätenamen‑Präfix `luxtronik_2_0_*` — sie ändern sich nicht, wenn die Integration umbenannt wird
 
-## 🤝 Kompatibilität
+## Voraussetzungen
 
-| Hersteller | Luxtronik 2.0 Regler | Anmerkung |
-|------------|----------------------|-----------|
-| Alpha Innotec | ✅ Ja | Getestet mit MSW 14 (Sole/Wasser) |
-| Novelan | ✅ Ja | Gleiche Reglerplattform |
-| Buderus | ✅ Ja | Ältere Luxtronik-Modelle |
-| Nibe | ✅ Ja | Nur Luxtronik-basierte Modelle |
-| Roth, Elco, Wolf | ✅ Ja | Gleiche Reglerplattform |
+- Home Assistant **2024.1** oder neuer
+- Eine im LAN erreichbare Luxtronik‑2.0‑Wärmepumpensteuerung
+- Die IP‑Adresse der Wärmepumpe
 
-Voraussetzung: Luxtronik-2.0-Firmware auf Port 8889.
+## Kompatible Wärmepumpen
 
-## 🔐 Sicherheit
+Alle Wärmepumpen mit Luxtronik‑2.0‑Steuerung, unter anderem Modelle von:
 
-Dies ist ein **öffentliches Repository**. Ein Pre-Commit-Hook scannt jeden Commit auf sensible Muster (echte IPs, Hostnames, Tokens) und blockiert den Commit im Treffer-Fall. Beiträge willkommen — bitte gleiches Prinzip beachten.
+- Alpha Innotec
+- Novelan
+- Buderus (ausgewählte Modelle)
+- Nibe (ausgewählte Modelle)
+- Roth
+- Elco
+- Wolf
+
+Wenn dein Gerät älter als Luxtronik 2.1 ist und keinen Firmware‑Upgrade‑Pfad hat, ist diese Integration für dich.
+
+## Migration von v1.1
+
+Falls du zuvor die alte `luxtronik2_modbus_proxy`‑HACS‑Integration (v1.1) verwendet hast, siehe **[MIGRATION.md](MIGRATION.md)** für die schrittweise Anleitung. Deine sichtbaren Entity‑IDs bleiben beim Upgrade stabil, weil sie vom Gerätenamen‑Slug abgeleitet werden, nicht vom Integrations‑Domain.
+
+## Support
+
+- Probleme: [GitHub Issues](https://github.com/notDIRK/luxtronik2-hass/issues)
+- Diskussionen: [GitHub Discussions](https://github.com/notDIRK/luxtronik2-hass/discussions)
 
 ## Lizenz
 
-MIT. Siehe [LICENSE](LICENSE).
+[MIT](LICENSE) — passend zum Ökosystem der `luxtronik`‑Bibliothek.
+
+## Danksagung
+
+- [`luxtronik`](https://github.com/Bouni/python-luxtronik)‑Bibliothek von Bouni — der Binärprotokoll‑Client, auf dem diese Integration aufbaut
+- Die Home‑Assistant‑Community
