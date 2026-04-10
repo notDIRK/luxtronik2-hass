@@ -157,11 +157,17 @@ def _extract_select_descriptions(source: str) -> list[dict]:
 
 SELECT_DESCRIPTIONS_DATA = _extract_select_descriptions(_SELECT_SOURCE)
 
-# Load proxy sg_ready.py SG_READY_MODE_MAP for cross-validation
-_SG_READY_SOURCE = _SG_READY_PATH.read_text()
-PROXY_SG_READY_MODE_MAP: dict[int, dict[int, int]] = _extract_assign(
-    _SG_READY_SOURCE, "SG_READY_MODE_MAP"
-)
+# Load proxy sg_ready.py SG_READY_MODE_MAP for cross-validation.
+# After the Phase 8 repo split this file only exists in the archived
+# `luxtronik2-modbus-proxy` repo; the cross-validation test is skipped
+# when the file is absent (HA-only repo path).
+if _SG_READY_PATH.exists():
+    _SG_READY_SOURCE = _SG_READY_PATH.read_text()
+    PROXY_SG_READY_MODE_MAP: dict[int, dict[int, int]] | None = _extract_assign(
+        _SG_READY_SOURCE, "SG_READY_MODE_MAP"
+    )
+else:
+    PROXY_SG_READY_MODE_MAP = None
 
 
 # ===========================================================================
@@ -211,6 +217,8 @@ class TestSgReadyOptions:
 
     def test_sg_ready_mode_map_matches_proxy(self) -> None:
         """SG_READY_MODE_MAP in select.py must match the proxy's sg_ready.py."""
+        if PROXY_SG_READY_MODE_MAP is None:
+            pytest.skip("proxy sg_ready.py not present in HA-only repo (Phase 8+)")
         assert SG_READY_MODE_MAP == PROXY_SG_READY_MODE_MAP
 
     def test_sg_ready_mode_map_writes_params_3_and_4(self) -> None:
