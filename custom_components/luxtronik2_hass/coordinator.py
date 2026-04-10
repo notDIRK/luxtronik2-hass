@@ -1,4 +1,4 @@
-"""Coordinator for the Luxtronik 2 Modbus Proxy Home Assistant integration.
+"""Coordinator for the Luxtronik 2.0 (Home Assistant) integration.
 
 Implements a DataUpdateCoordinator that polls the Luxtronik 2.0 heat pump
 controller using the connect-per-call pattern. Each poll cycle creates a new

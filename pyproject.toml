@@ -1,5 +1,5 @@
 [project]
-name = "luxtronik2-modbus-proxy"
+name = "luxtronik2-hass"
 version = "1.1.2"
 description = "Home Assistant custom integration for Luxtronik 2.0 heat pumps"
 requires-python = ">=3.10"

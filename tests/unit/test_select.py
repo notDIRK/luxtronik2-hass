@@ -31,9 +31,9 @@ import pytest
 # ---------------------------------------------------------------------------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_SELECT_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_modbus_proxy" / "select.py"
-_STRINGS_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_modbus_proxy" / "strings.json"
-_SG_READY_PATH = _REPO_ROOT / "src" / "luxtronik2_modbus_proxy" / "sg_ready.py"
+_SELECT_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_hass" / "select.py"
+_STRINGS_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_hass" / "strings.json"
+_SG_READY_PATH = _REPO_ROOT / "src" / "luxtronik2_hass" / "sg_ready.py"
 
 # ---------------------------------------------------------------------------
 # AST-based extraction of pure-Python constants from select.py
@@ -159,7 +159,7 @@ SELECT_DESCRIPTIONS_DATA = _extract_select_descriptions(_SELECT_SOURCE)
 
 # Load proxy sg_ready.py SG_READY_MODE_MAP for cross-validation.
 # After the Phase 8 repo split this file only exists in the archived
-# `luxtronik2-modbus-proxy` repo; the cross-validation test is skipped
+# standalone proxy repository; the cross-validation test is skipped
 # when the file is absent (HA-only repo path).
 if _SG_READY_PATH.exists():
     _SG_READY_SOURCE = _SG_READY_PATH.read_text()

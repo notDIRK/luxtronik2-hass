@@ -1,4 +1,4 @@
-"""Button platform for the Luxtronik 2 Modbus Proxy Home Assistant integration.
+"""Button platform for the Luxtronik 2.0 (Home Assistant) integration.
 
 Provides a "Backup Parameters" button that reads all 1,126 parameters from the
 Luxtronik 2.0 controller and saves them as a timestamped JSON file. This gives

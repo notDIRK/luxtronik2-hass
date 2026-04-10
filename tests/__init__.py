@@ -1,1 +1,1 @@
-# Tests package for luxtronik2-modbus-proxy.
+# Tests package for luxtronik2-hass.

@@ -29,8 +29,8 @@ import pytest
 # ---------------------------------------------------------------------------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_NUMBER_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_modbus_proxy" / "number.py"
-_STRINGS_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_modbus_proxy" / "strings.json"
+_NUMBER_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_hass" / "number.py"
+_STRINGS_PATH = _REPO_ROOT / "custom_components" / "luxtronik2_hass" / "strings.json"
 
 # ---------------------------------------------------------------------------
 # AST-based extraction of NUMBER_DESCRIPTIONS from number.py

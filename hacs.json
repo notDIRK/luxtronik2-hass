@@ -1,5 +1,5 @@
 {
-  "name": "Luxtronik 2 Modbus Proxy",
+  "name": "Luxtronik 2.0 (Home Assistant)",
   "homeassistant": "2024.1.0",
   "render_readme": true
 }

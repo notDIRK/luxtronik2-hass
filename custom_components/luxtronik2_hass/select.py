@@ -1,4 +1,4 @@
-"""Select platform for the Luxtronik 2 Modbus Proxy Home Assistant integration.
+"""Select platform for the Luxtronik 2.0 (Home Assistant) integration.
 
 Provides select entities for controlling heat pump operating modes:
 

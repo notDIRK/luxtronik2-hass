@@ -1,4 +1,4 @@
-"""Config flow for Luxtronik 2 Modbus Proxy integration.
+"""Config flow for Luxtronik 2.0 (Home Assistant) integration.
 
 Implements a single-step user flow where the user enters the IP address of
 their Luxtronik 2.0 heat pump controller. The flow performs three checks
@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle the Luxtronik 2 Modbus Proxy integration config flow.
+    """Handle the Luxtronik 2.0 (Home Assistant) integration config flow.
 
     Single-step flow: the user provides the heat pump controller's IP address.
     The flow validates reachability and BenPru/luxtronik coexistence before
@@ -158,10 +158,10 @@ class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class LuxtronikOptionsFlow(config_entries.OptionsFlow):
-    """Handle the Luxtronik 2 Modbus Proxy options flow.
+    """Handle the Luxtronik 2.0 (Home Assistant) options flow.
 
     Allows users to reconfigure the heat pump IP address and poll interval
-    from Settings > Devices & Services > Luxtronik 2 Modbus Proxy > Configure,
+    from Settings > Devices & Services > Luxtronik 2.0 (Home Assistant) > Configure,
     without removing and re-adding the integration.
 
     On save, changes are persisted via async_update_entry into the config entry

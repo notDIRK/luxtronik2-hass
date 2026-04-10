@@ -1,6 +1,6 @@
-"""Constants for the Luxtronik 2 Modbus Proxy integration."""
+"""Constants for the Luxtronik 2.0 (Home Assistant) integration."""
 
-DOMAIN = "luxtronik2_modbus_proxy"
+DOMAIN = "luxtronik2_hass"
 
 # Default connection parameters
 DEFAULT_PORT = 8889

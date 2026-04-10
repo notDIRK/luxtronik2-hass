@@ -1,4 +1,4 @@
-"""Number platform for the Luxtronik 2 Modbus Proxy Home Assistant integration.
+"""Number platform for the Luxtronik 2.0 (Home Assistant) integration.
 
 Provides number entities for temperature setpoint control:
 

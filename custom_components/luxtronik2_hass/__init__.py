@@ -1,4 +1,4 @@
-"""Luxtronik 2 Modbus Proxy integration for Home Assistant.
+"""Luxtronik 2.0 (Home Assistant) integration.
 
 Wires the config entry lifecycle to the LuxtronikCoordinator:
 
@@ -30,7 +30,7 @@ PLATFORMS: list[str] = ["sensor", "select", "number", "button"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Luxtronik 2 Modbus Proxy from a config entry.
+    """Set up Luxtronik 2.0 (Home Assistant) from a config entry.
 
     Called by HA when a config entry is loaded (on startup or after being added
     via the config flow). Creates a LuxtronikCoordinator, performs the first
@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a Luxtronik 2 Modbus Proxy config entry.
+    """Unload a Luxtronik 2.0 (Home Assistant) config entry.
 
     Called by HA when the user removes the integration or HA is shutting down.
     Unloads all entity platforms and removes the coordinator from hass.data. (D-13)

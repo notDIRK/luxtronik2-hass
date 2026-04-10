@@ -1,4 +1,4 @@
-"""Sensor platform for the Luxtronik 2 Modbus Proxy Home Assistant integration.
+"""Sensor platform for the Luxtronik 2.0 (Home Assistant) integration.
 
 Exposes Luxtronik 2.0 heat pump data as HA sensor entities:
 

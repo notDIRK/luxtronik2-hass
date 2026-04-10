@@ -14,7 +14,7 @@ photovoltaik, smart home, homeassistant
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue)
 
-# Luxtronik 2 Modbus Proxy + Home Assistant Integration
+# Luxtronik 2.0 (Home Assistant) + Modbus-TCP-Proxy
 
 **Zwei Nutzungswege — such dir den passenden aus:**
 
@@ -48,9 +48,9 @@ Alle Entity-Namen und Übersetzungen auf **Deutsch und Englisch** (weitere Sprac
 ### Installation in 2 Minuten
 
 1. HACS öffnen → **Integrationen** → **⋮** → **Benutzerdefinierte Repositories**
-2. `https://github.com/notDIRK/luxtronik2-modbus-proxy` als Typ **Integration** hinzufügen
+2. `https://github.com/notDIRK/luxtronik2-hass` als Typ **Integration** hinzufügen
 3. Integration herunterladen, Home Assistant neu starten
-4. **Einstellungen → Geräte & Dienste → Integration hinzufügen → "Luxtronik 2 Modbus Proxy"**
+4. **Einstellungen → Geräte & Dienste → Integration hinzufügen → "Luxtronik 2.0 (Home Assistant)"**
 5. IP-Adresse der Wärmepumpe eingeben. Fertig.
 
 ### Beispiel-Dashboard
@@ -67,7 +67,7 @@ Wenn du die Wärmepumpe mit **evcc**, Grafana oder einem anderen Modbus-TCP-Clie
 
 ```
 ┌─────────────────────┐         ┌──────────────────────────┐
-│  Luxtronik 2.0      │         │  luxtronik2-modbus-proxy │
+│  Luxtronik 2.0      │         │  luxtronik2-hass         │
 │  Wärmepumpe         │ <────>  │                          │ <── evcc
 │  Regler             │         │  Modbus-TCP-Server       │
 │  Port 8889          │         │  Port 502                │ <── Grafana / andere
