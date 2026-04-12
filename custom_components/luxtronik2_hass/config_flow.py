@@ -28,6 +28,8 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST
 
 from .const import (
+    DEFAULT_BATH_BOOST_NORMAL_TEMP,
+    DEFAULT_BATH_BOOST_TARGET_TEMP,
     DEFAULT_GRID_SENSOR,
     DEFAULT_NIGHT_PAUSE_ENABLED,
     DEFAULT_NIGHT_PAUSE_END,
@@ -198,6 +200,8 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_solar_boost()
             if next_step == "night_pause":
                 return await self.async_step_night_pause()
+            if next_step == "bath_boost":
+                return await self.async_step_bath_boost()
             if next_step == "dashboard_info":
                 return await self.async_step_dashboard_info()
 
@@ -210,6 +214,7 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                             "connection": "Connection Settings",
                             "solar_boost": "Solar Boost (optional)",
                             "night_pause": "Night Heating Pause (optional)",
+                            "bath_boost": "Bath Boost (optional)",
                             "dashboard_info": "Dashboard Setup",
                         }
                     ),
@@ -391,6 +396,50 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                             "night_pause_end", DEFAULT_NIGHT_PAUSE_END
                         ),
                     ): str,
+                }
+            ),
+        )
+
+    async def async_step_bath_boost(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure the Bath Boost (Badebooster) feature.
+
+        Sets target and normal temperatures for on-demand hot water boosting.
+        """
+        data = self.config_entry.data
+
+        if user_input is not None:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={
+                    **data,
+                    "bath_boost_target_temp": user_input.get(
+                        "bath_boost_target_temp", DEFAULT_BATH_BOOST_TARGET_TEMP
+                    ),
+                    "bath_boost_normal_temp": user_input.get(
+                        "bath_boost_normal_temp", DEFAULT_BATH_BOOST_NORMAL_TEMP
+                    ),
+                },
+            )
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="bath_boost",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "bath_boost_target_temp",
+                        default=float(data.get(
+                            "bath_boost_target_temp", DEFAULT_BATH_BOOST_TARGET_TEMP
+                        )),
+                    ): vol.All(vol.Coerce(float), vol.Range(min=40.0, max=70.0)),
+                    vol.Optional(
+                        "bath_boost_normal_temp",
+                        default=float(data.get(
+                            "bath_boost_normal_temp", DEFAULT_BATH_BOOST_NORMAL_TEMP
+                        )),
+                    ): vol.All(vol.Coerce(float), vol.Range(min=30.0, max=65.0)),
                 }
             ),
         )

@@ -39,6 +39,15 @@ DEFAULT_NIGHT_PAUSE_ENABLED = False
 DEFAULT_NIGHT_PAUSE_START = "18:00"
 DEFAULT_NIGHT_PAUSE_END = "09:00"
 
+# Bath Boost defaults
+DEFAULT_BATH_BOOST_TARGET_TEMP = 65.0   # °C — target temperature for bath boost
+DEFAULT_BATH_BOOST_NORMAL_TEMP = 55.5   # °C — restore after boost completes
+DEFAULT_BATH_BOOST_HEAT_RATE = 4.0      # °C per hour — fallback estimation rate
+
+# Hot water mode values (matches select.py MODE_OPTIONS)
+HOT_WATER_MODE_AUTOMATIC = 0
+HOT_WATER_MODE_PARTY = 2
+
 # Heating mode values (matches select.py MODE_OPTIONS)
 HEATING_MODE_AUTO = 0
 HEATING_MODE_OFF = 4

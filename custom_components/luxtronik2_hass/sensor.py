@@ -42,6 +42,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .bath_boost import BathBoostManager
 from .const import DOMAIN, MANUFACTURER, MODEL
 from .coordinator import LuxtronikCoordinator
 
@@ -688,6 +689,74 @@ class LuxtronikLastBackupSensor(SensorEntity):
 
 
 # ---------------------------------------------------------------------------
+# LuxtronikBathBoostSensor
+# ---------------------------------------------------------------------------
+
+
+class LuxtronikBathBoostSensor(
+    CoordinatorEntity[LuxtronikCoordinator], SensorEntity
+):
+    """Sensor showing Bath Boost status, progress, and time estimate.
+
+    Displays "Active" or "Idle" as the main state. Extra state attributes
+    provide detailed progress information: current temperature, target
+    temperature, progress percentage, and estimated remaining minutes.
+
+    Updates on every coordinator data refresh (typically every 30 seconds).
+    """
+
+    _attr_icon = "mdi:water-boiler"
+    _attr_has_entity_name = True
+    _attr_translation_key = "bath_boost_status"
+
+    def __init__(
+        self,
+        coordinator: LuxtronikCoordinator,
+        entry: ConfigEntry,
+        bath_boost_manager: BathBoostManager,
+    ) -> None:
+        """Initialize the bath boost status sensor.
+
+        Args:
+            coordinator: The LuxtronikCoordinator providing poll data.
+            entry: The config entry this entity belongs to.
+            bath_boost_manager: The BathBoostManager providing boost state.
+        """
+        super().__init__(coordinator)
+        self._manager = bath_boost_manager
+        self._attr_unique_id = f"{entry.entry_id}_bath_boost_status"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for grouping under the heat pump device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
+            name=MODEL,
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
+
+    @property
+    def native_value(self) -> str:
+        """Return the boost status: Active or Idle."""
+        return "Active" if self._manager.boost_active else "Idle"
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return detailed boost progress attributes."""
+        activated_at = self._manager.boost_activated_at
+        return {
+            "boost_active": self._manager.boost_active,
+            "current_temperature": self._manager.current_temp,
+            "target_temperature": self._manager.target_temp,
+            "normal_temperature": self._manager.normal_temp,
+            "progress_percent": self._manager.progress_percent,
+            "estimated_remaining_minutes": self._manager.estimated_remaining_minutes,
+            "activated_at": activated_at.isoformat() if activated_at else None,
+        }
+
+
+# ---------------------------------------------------------------------------
 # Platform setup
 # ---------------------------------------------------------------------------
 
@@ -743,10 +812,19 @@ async def async_setup_entry(
     entities_all: list[SensorEntity] = list(entities)
     entities_all.append(LuxtronikLastBackupSensor(hass, entry))
 
+    # Add bath boost status sensor if manager is available
+    bath_boost_mgr: BathBoostManager | None = hass.data[DOMAIN].get(
+        f"{entry.entry_id}_bath_boost"
+    )
+    if bath_boost_mgr:
+        entities_all.append(
+            LuxtronikBathBoostSensor(coordinator, entry, bath_boost_mgr)
+        )
+
     _LOGGER.debug(
-        "Registered %d sensor entities (%d core, %d extra calcs, %d params, 1 last_backup)",
+        "Registered %d sensor entities (%d core, %d extra calcs, %d params)",
         len(entities_all),
-        len(CORE_SENSOR_DESCRIPTIONS),  # actual registered may be 9 if power skipped
+        len(CORE_SENSOR_DESCRIPTIONS),
         len(ALL_EXTRA_CALC_DESCRIPTIONS),
         len(ALL_PARAM_DESCRIPTIONS),
     )

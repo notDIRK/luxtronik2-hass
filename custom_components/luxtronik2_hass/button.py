@@ -34,6 +34,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .bath_boost import BathBoostManager
 from .const import BACKUP_DIR, DOMAIN, MANUFACTURER, MODEL
 from .coordinator import LuxtronikCoordinator
 
@@ -47,7 +48,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Luxtronik button entities from a config entry.
 
-    Creates and registers the backup parameters button for this integration entry.
+    Creates and registers the backup parameters button and bath boost button.
 
     Args:
         hass: The Home Assistant instance.
@@ -55,8 +56,17 @@ async def async_setup_entry(
         async_add_entities: Callback to register entity objects with HA.
     """
     coordinator: LuxtronikCoordinator = hass.data[DOMAIN][entry.entry_id]
-    button = LuxtronikBackupButton(hass, coordinator, entry)
-    async_add_entities([button])
+    entities: list[ButtonEntity] = [LuxtronikBackupButton(hass, coordinator, entry)]
+
+    bath_boost_mgr: BathBoostManager | None = hass.data[DOMAIN].get(
+        f"{entry.entry_id}_bath_boost"
+    )
+    if bath_boost_mgr:
+        entities.append(
+            LuxtronikBathBoostButton(hass, coordinator, entry, bath_boost_mgr)
+        )
+
+    async_add_entities(entities)
 
 
 class LuxtronikBackupButton(ButtonEntity):
@@ -259,3 +269,51 @@ class LuxtronikBackupButton(ButtonEntity):
             "Wrote %d parameters to %s", len(params_dict), filepath
         )
         return filename, now.isoformat(), len(params_dict)
+
+
+class LuxtronikBathBoostButton(ButtonEntity):
+    """Button entity that triggers the Bath Boost (Badebooster) feature.
+
+    When pressed, activates on-demand hot water heating to a configurable
+    target temperature. The BathBoostManager handles progress tracking and
+    automatic deactivation when the target is reached.
+    """
+
+    _attr_icon = "mdi:water-boiler"
+    _attr_has_entity_name = True
+    _attr_translation_key = "bath_boost"
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        coordinator: LuxtronikCoordinator,
+        entry: ConfigEntry,
+        bath_boost_manager: BathBoostManager,
+    ) -> None:
+        """Initialize the bath boost button.
+
+        Args:
+            hass: The Home Assistant instance.
+            coordinator: The LuxtronikCoordinator that owns the controller connection.
+            entry: The config entry this entity belongs to.
+            bath_boost_manager: The BathBoostManager that handles boost logic.
+        """
+        self.hass = hass
+        self._coordinator = coordinator
+        self._entry = entry
+        self._bath_boost_manager = bath_boost_manager
+        self._attr_unique_id = f"{entry.entry_id}_bath_boost"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for grouping this entity under the heat pump device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._coordinator.config_entry.entry_id)},
+            name=MODEL,
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
+
+    async def async_press(self) -> None:
+        """Handle button press — activate bath boost."""
+        await self._bath_boost_manager.async_activate()

@@ -24,7 +24,7 @@
     "step": {
       "init": {
         "title": "Luxtronik 2.0 — Einstellungen",
-        "description": "Waehlen Sie, was Sie konfigurieren moechten. Smart Energy Funktionen (Solar Boost, Nacht-Pause) sind optional — ueberspringen Sie sie wenn Sie sie nicht benoetigen.",
+        "description": "Waehlen Sie, was Sie konfigurieren moechten. Smart Energy Funktionen (Solar Boost, Nacht-Pause) und Badebooster sind optional — ueberspringen Sie sie wenn Sie sie nicht benoetigen.",
         "data": {
           "section": "Was moechten Sie konfigurieren?"
         }
@@ -73,6 +73,18 @@
           "night_pause_end": "Uhrzeit ab der die Fussbodenheizung wieder auf Automatik gestellt wird. Beispiel: 09:00 bedeutet die Heizung laeuft ab 9 Uhr wieder."
         }
       },
+      "bath_boost": {
+        "title": "Badebooster",
+        "description": "**Was es tut:** Druecken Sie den Badebooster-Button um den Warmwasserspeicher auf eine hoehere Zieltemperatur aufzuheizen — fuer ein heisses Bad. Sobald die Zieltemperatur erreicht ist, wird die Solltemperatur automatisch auf den Normalwert zurueckgestellt.\n\n**So funktioniert es:** Aktiviert den Party-Modus im Warmwasserkreis (erzwingt sofortiges Aufheizen) und erhoeht die Solltemperatur. Ein Status-Sensor zeigt den Fortschritt und die geschaetzte Restzeit an.\n\n**Tipp:** Der Standard-Zielwert (65,0 °C) funktioniert fuer die meisten Pufferspeicher. Senken Sie ihn, wenn das Maximum Ihres Reglers darunter liegt.",
+        "data": {
+          "bath_boost_target_temp": "Zieltemperatur (°C)",
+          "bath_boost_normal_temp": "Normaltemperatur (°C)"
+        },
+        "data_description": {
+          "bath_boost_target_temp": "Die Temperatur, auf die der Warmwasserspeicher beim Badebooster aufgeheizt wird. Standard: 65,0 °C.",
+          "bath_boost_normal_temp": "Die Temperatur, die nach dem Badebooster wiederhergestellt wird. Das ist Ihre normale Warmwasser-Solltemperatur. Standard: 55,5 °C."
+        }
+      },
       "dashboard_info": {
         "title": "Dashboard einrichten",
         "description": "Fertige Dashboards sind in zwei Sprachen verfuegbar. Waehlen Sie das passende fuer Ihre HA-Sprache.\n\n**So richten Sie es ein:**\n1. Gehen Sie zu **Einstellungen → Dashboards → Dashboard hinzufuegen**\n2. Name vergeben (z.B. 'Waermepumpe') und Icon waehlen (mdi:heat-pump)\n3. Neues Dashboard oeffnen → **⋮** → **Dashboard bearbeiten** → **⋮** → **Roher Konfigurationseditor**\n4. Das YAML aus einem der Links unten kopieren und einfuegen\n5. `your-heatpump-ip` durch die IP-Adresse Ihrer Waermepumpe ersetzen\n6. **Speichern** klicken, dann **Fertig**\n\n**Deutsches Dashboard:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml\n\n**English Dashboard:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml"
@@ -86,11 +98,21 @@
     "button": {
       "backup_parameters": {
         "name": "Parameter-Sicherung"
+      },
+      "bath_boost": {
+        "name": "Badebooster"
       }
     },
     "sensor": {
       "last_backup": {
         "name": "Letzte Sicherung"
+      },
+      "bath_boost_status": {
+        "name": "Badebooster Status",
+        "state": {
+          "active": "Aktiv",
+          "idle": "Bereit"
+        }
       }
     },
     "select": {

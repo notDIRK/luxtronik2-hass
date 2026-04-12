@@ -20,6 +20,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
+from .bath_boost import BathBoostManager
 from .const import DEFAULT_PORT, DOMAIN
 from .coordinator import LuxtronikCoordinator
 from .smart_energy import SmartEnergyManager
@@ -75,6 +76,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await smart_energy.async_start()
     hass.data[DOMAIN][f"{entry.entry_id}_smart_energy"] = smart_energy
 
+    # Bath Boost: on-demand hot water heating manager
+    bath_boost = BathBoostManager(hass, coordinator, entry)
+    await bath_boost.async_start()
+    hass.data[DOMAIN][f"{entry.entry_id}_bath_boost"] = bath_boost
+
     # D-14: Forward to entity platforms (sensor, select, number, switch).
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -97,6 +103,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
+        # Stop Bath Boost manager before removing coordinator
+        bath_boost = hass.data[DOMAIN].pop(
+            f"{entry.entry_id}_bath_boost", None
+        )
+        if bath_boost:
+            await bath_boost.async_stop()
+
         # Stop Smart Energy manager before removing coordinator
         smart_energy = hass.data[DOMAIN].pop(
             f"{entry.entry_id}_smart_energy", None

@@ -24,7 +24,7 @@
     "step": {
       "init": {
         "title": "Luxtronik 2.0 — Settings",
-        "description": "Choose what you want to configure. Smart Energy features (Solar Boost, Night Pause) are optional — skip them if you don't need them.",
+        "description": "Choose what you want to configure. Smart Energy features (Solar Boost, Night Pause) and Bath Boost are optional — skip them if you don't need them.",
         "data": {
           "section": "What do you want to configure?"
         }
@@ -73,6 +73,18 @@
           "night_pause_end": "Time when floor heating is restored to automatic mode. Example: 09:00 means heating resumes at 9 AM."
         }
       },
+      "bath_boost": {
+        "title": "Bath Boost",
+        "description": "**What it does:** Press the Bath Boost button to heat your hot water tank to a higher target temperature for a hot bath. Once the target is reached, the setpoint automatically returns to normal.\n\n**How it works:** Activates Party mode on the hot water circuit (forces immediate heating) and raises the setpoint. A status sensor shows progress and estimated remaining time.\n\n**Tip:** The default target (65.0 °C) works well for most buffer tanks. Lower it if your controller's maximum is below 65 °C.",
+        "data": {
+          "bath_boost_target_temp": "Target Temperature (°C)",
+          "bath_boost_normal_temp": "Normal Temperature (°C)"
+        },
+        "data_description": {
+          "bath_boost_target_temp": "The temperature to heat the hot water tank to when Bath Boost is activated. Default: 65.0 °C.",
+          "bath_boost_normal_temp": "The temperature to restore after Bath Boost completes. This is your normal hot water setpoint. Default: 55.5 °C."
+        }
+      },
       "dashboard_info": {
         "title": "Dashboard Setup",
         "description": "Ready-to-use dashboards are included in two languages. Pick the one matching your HA language.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Heat Pump') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from one of the links below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**English Dashboard:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml\n\n**German Dashboard (Deutsch):** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
@@ -86,11 +98,21 @@
     "button": {
       "backup_parameters": {
         "name": "Backup Parameters"
+      },
+      "bath_boost": {
+        "name": "Bath Boost"
       }
     },
     "sensor": {
       "last_backup": {
         "name": "Last Backup"
+      },
+      "bath_boost_status": {
+        "name": "Bath Boost Status",
+        "state": {
+          "active": "Active",
+          "idle": "Idle"
+        }
       }
     },
     "select": {
