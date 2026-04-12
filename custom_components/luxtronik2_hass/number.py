@@ -63,8 +63,11 @@ class LuxtronikNumberEntityDescription(NumberEntityDescription):
 # ---------------------------------------------------------------------------
 
 NUMBER_DESCRIPTIONS: tuple[LuxtronikNumberEntityDescription, ...] = (
-    # CTRL-03, D-14: Hot water setpoint — parameter 105 (ID_Soll_BWS_akt)
-    # Range 30.0-65.0 C verified from register_definitions/parameters.py (min_value=300, max_value=650)
+    # CTRL-03, D-14: Hot water setpoint — parameter 2 (ID_Einst_BWS_akt)
+    # This is the *setting* parameter that the controller actually uses.
+    # Parameter 105 (ID_Soll_BWS_akt) is the *computed* current setpoint —
+    # writing to it has no lasting effect because the controller overwrites it.
+    # Range 30.0-65.0 C, step 0.5 (Celsius type: raw = display * 10)
     LuxtronikNumberEntityDescription(
         key="hot_water_setpoint",
         icon="mdi:thermometer",
@@ -75,7 +78,7 @@ NUMBER_DESCRIPTIONS: tuple[LuxtronikNumberEntityDescription, ...] = (
         native_step=0.5,
         mode=NumberMode.BOX,
         entity_category=EntityCategory.CONFIG,
-        lux_index=105,
+        lux_index=2,
         raw_multiplier=10,
     ),
     # CTRL-03, D-15: Heating curve offset — parameter 1 (ID_Einst_WK_akt)
