@@ -27,7 +27,20 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST
 
-from .const import DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DOMAIN
+from .const import (
+    DEFAULT_GRID_SENSOR,
+    DEFAULT_NIGHT_PAUSE_ENABLED,
+    DEFAULT_NIGHT_PAUSE_END,
+    DEFAULT_NIGHT_PAUSE_START,
+    DEFAULT_POLL_INTERVAL,
+    DEFAULT_PORT,
+    DEFAULT_SOLAR_BOOST_ENABLED,
+    DEFAULT_SOLAR_BOOST_TEMP,
+    DEFAULT_SOLAR_MIN_RUNTIME,
+    DEFAULT_SOLAR_NORMAL_TEMP,
+    DEFAULT_SOLAR_THRESHOLD,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -214,9 +227,7 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     errors["base"] = "cannot_connect"
 
             if not errors:
-                # Persist both host and poll_interval into the config entry data dict.
-                # The update listener in __init__.py will reload the entry so the
-                # coordinator picks up the new values immediately.
+                # Persist connection settings, then continue to smart energy step.
                 self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     data={
@@ -226,8 +237,7 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                         "poll_interval": poll_interval,
                     },
                 )
-                # Return empty options dict — all data is stored in entry.data above.
-                return self.async_create_entry(title="", data={})
+                return await self.async_step_smart_energy()
 
         return self.async_show_form(
             step_id="init",
@@ -240,4 +250,111 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                 }
             ),
             errors=errors,
+        )
+
+    async def async_step_smart_energy(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Handle the Smart Energy configuration step.
+
+        Configures Solar Boost and Night Heating Pause features. All fields
+        are optional — leaving grid_sensor empty disables solar features.
+
+        These features are designed for heat pumps with multi-layer buffer
+        tanks and DHW heat exchangers. Solar boost uses surplus grid feed-in
+        to heat the buffer; night pause prevents the floor heating circuit
+        from cooling the tank overnight.
+        """
+        data = self.config_entry.data
+
+        if user_input is not None:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={
+                    **data,
+                    "grid_sensor": user_input.get("grid_sensor", ""),
+                    "solar_boost_enabled": user_input.get(
+                        "solar_boost_enabled", DEFAULT_SOLAR_BOOST_ENABLED
+                    ),
+                    "solar_threshold": user_input.get(
+                        "solar_threshold", DEFAULT_SOLAR_THRESHOLD
+                    ),
+                    "solar_normal_temp": user_input.get(
+                        "solar_normal_temp", DEFAULT_SOLAR_NORMAL_TEMP
+                    ),
+                    "solar_boost_temp": user_input.get(
+                        "solar_boost_temp", DEFAULT_SOLAR_BOOST_TEMP
+                    ),
+                    "solar_min_runtime": user_input.get(
+                        "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
+                    ),
+                    "night_pause_enabled": user_input.get(
+                        "night_pause_enabled", DEFAULT_NIGHT_PAUSE_ENABLED
+                    ),
+                    "night_pause_start": user_input.get(
+                        "night_pause_start", DEFAULT_NIGHT_PAUSE_START
+                    ),
+                    "night_pause_end": user_input.get(
+                        "night_pause_end", DEFAULT_NIGHT_PAUSE_END
+                    ),
+                },
+            )
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="smart_energy",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "grid_sensor",
+                        default=data.get("grid_sensor", DEFAULT_GRID_SENSOR),
+                    ): str,
+                    vol.Optional(
+                        "solar_boost_enabled",
+                        default=data.get(
+                            "solar_boost_enabled", DEFAULT_SOLAR_BOOST_ENABLED
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        "solar_threshold",
+                        default=data.get("solar_threshold", DEFAULT_SOLAR_THRESHOLD),
+                    ): vol.All(int, vol.Range(min=0, max=20000)),
+                    vol.Optional(
+                        "solar_normal_temp",
+                        default=data.get(
+                            "solar_normal_temp", DEFAULT_SOLAR_NORMAL_TEMP
+                        ),
+                    ): vol.All(float, vol.Range(min=30.0, max=65.0)),
+                    vol.Optional(
+                        "solar_boost_temp",
+                        default=data.get(
+                            "solar_boost_temp", DEFAULT_SOLAR_BOOST_TEMP
+                        ),
+                    ): vol.All(float, vol.Range(min=30.0, max=65.0)),
+                    vol.Optional(
+                        "solar_min_runtime",
+                        default=data.get(
+                            "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
+                        ),
+                    ): vol.All(int, vol.Range(min=5, max=120)),
+                    vol.Optional(
+                        "night_pause_enabled",
+                        default=data.get(
+                            "night_pause_enabled", DEFAULT_NIGHT_PAUSE_ENABLED
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        "night_pause_start",
+                        default=data.get(
+                            "night_pause_start", DEFAULT_NIGHT_PAUSE_START
+                        ),
+                    ): str,
+                    vol.Optional(
+                        "night_pause_end",
+                        default=data.get(
+                            "night_pause_end", DEFAULT_NIGHT_PAUSE_END
+                        ),
+                    ): str,
+                }
+            ),
         )

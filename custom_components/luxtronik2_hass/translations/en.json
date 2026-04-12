@@ -33,6 +33,30 @@
           "host": "Local IP address or hostname of the Luxtronik 2.0 controller",
           "poll_interval": "How often to read data from the heat pump (10-300 seconds, default 30)"
         }
+      },
+      "smart_energy": {
+        "title": "Smart Energy Features",
+        "description": "For heat pumps with multi-layer buffer tanks and DHW heat exchangers: Solar Boost uses surplus grid feed-in to heat the buffer tank. Night Heating Pause disables floor heating overnight to prevent the buffer from cooling down — ensuring hot water is available in the morning.\n\nLeave 'Grid Sensor' empty to disable solar features.",
+        "data": {
+          "grid_sensor": "Grid Sensor Entity",
+          "solar_boost_enabled": "Solar Boost enabled",
+          "solar_threshold": "Feed-in Threshold (W)",
+          "solar_normal_temp": "Normal Hot Water Temperature (°C)",
+          "solar_boost_temp": "Boost Hot Water Temperature (°C)",
+          "solar_min_runtime": "Minimum Boost Duration (minutes)",
+          "night_pause_enabled": "Night Heating Pause enabled",
+          "night_pause_start": "Pause Start (HH:MM)",
+          "night_pause_end": "Pause End (HH:MM)"
+        },
+        "data_description": {
+          "grid_sensor": "Entity ID of your grid power sensor (e.g. sensor.grid_total). Positive values = feed-in. Leave empty to disable.",
+          "solar_threshold": "Minimum grid feed-in in watts before boost activates (default: 1500)",
+          "solar_normal_temp": "Hot water setpoint during normal operation (default: 55.5)",
+          "solar_boost_temp": "Hot water setpoint during solar boost (default: 65.0, limited by controller max)",
+          "solar_min_runtime": "Minimum time boost stays active to prevent rapid cycling (default: 30 min)",
+          "night_pause_start": "Time when floor heating is turned off (default: 18:00)",
+          "night_pause_end": "Time when floor heating is restored to auto (default: 09:00)"
+        }
       }
     },
     "error": {
@@ -87,6 +111,14 @@
       },
       "heating_curve_offset": {
         "name": "Heating Curve Offset"
+      }
+    },
+    "switch": {
+      "solar_boost_enabled": {
+        "name": "Solar Boost"
+      },
+      "night_pause_enabled": {
+        "name": "Night Heating Pause"
       }
     }
   }

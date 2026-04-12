@@ -22,11 +22,12 @@ from homeassistant.core import HomeAssistant
 
 from .const import DEFAULT_PORT, DOMAIN
 from .coordinator import LuxtronikCoordinator
+from .smart_energy import SmartEnergyManager
 
 _LOGGER = logging.getLogger(__name__)
 
-# Entity platforms: sensor (Phase 6), select + number (Phase 7).
-PLATFORMS: list[str] = ["sensor", "select", "number", "button"]
+# Entity platforms: sensor (Phase 6), select + number (Phase 7), switch (Smart Energy).
+PLATFORMS: list[str] = ["sensor", "select", "number", "button", "switch"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -69,7 +70,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # D-12: Store coordinator keyed by entry_id so entity platforms can retrieve it.
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
-    # D-14: Forward to entity platforms (sensor, select, number).
+    # Smart Energy: start automation manager (Solar Boost + Night Heating Pause)
+    smart_energy = SmartEnergyManager(hass, coordinator, entry)
+    await smart_energy.async_start()
+    hass.data[DOMAIN][f"{entry.entry_id}_smart_energy"] = smart_energy
+
+    # D-14: Forward to entity platforms (sensor, select, number, switch).
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
@@ -91,6 +97,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
+        # Stop Smart Energy manager before removing coordinator
+        smart_energy = hass.data[DOMAIN].pop(
+            f"{entry.entry_id}_smart_energy", None
+        )
+        if smart_energy:
+            await smart_energy.async_stop()
+
         # D-13: Remove coordinator from shared data store.
         hass.data[DOMAIN].pop(entry.entry_id)
 

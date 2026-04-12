@@ -33,6 +33,30 @@
           "host": "Lokale IP-Adresse oder Hostname des Luxtronik 2.0 Reglers",
           "poll_interval": "Wie oft Daten von der Waermepumpe gelesen werden (10-300 Sekunden, Standard 30)"
         }
+      },
+      "smart_energy": {
+        "title": "Smart Energy Funktionen",
+        "description": "Fuer Waermepumpen mit Mehrschichtspeicher und Warmwasser-Durchlauferhitzer: Solar Boost nutzt ueberschuessige Netzeinspeisung um den Speicher aufzuheizen. Nacht-Heizungspause schaltet die Fussbodenheizung ueber Nacht ab, damit der Speicher nicht auskuehlt — so steht morgens genuegend Warmwasser zur Verfuegung.\n\nLassen Sie 'Grid Sensor' leer um die Solar-Funktionen zu deaktivieren.",
+        "data": {
+          "grid_sensor": "Grid Sensor Entity",
+          "solar_boost_enabled": "Solar Boost aktiviert",
+          "solar_threshold": "Einspeise-Schwellwert (W)",
+          "solar_normal_temp": "Normale Warmwasser-Temperatur (°C)",
+          "solar_boost_temp": "Boost Warmwasser-Temperatur (°C)",
+          "solar_min_runtime": "Mindest-Boost-Dauer (Minuten)",
+          "night_pause_enabled": "Nacht-Heizungspause aktiviert",
+          "night_pause_start": "Pause Beginn (HH:MM)",
+          "night_pause_end": "Pause Ende (HH:MM)"
+        },
+        "data_description": {
+          "grid_sensor": "Entity-ID des Netzleistungs-Sensors (z.B. sensor.grid_total). Positive Werte = Einspeisung. Leer lassen zum Deaktivieren.",
+          "solar_threshold": "Mindest-Netzeinspeisung in Watt bevor Boost aktiviert wird (Standard: 1500)",
+          "solar_normal_temp": "Warmwasser-Solltemperatur im Normalbetrieb (Standard: 55,5)",
+          "solar_boost_temp": "Warmwasser-Solltemperatur bei Solar Boost (Standard: 65,0, begrenzt durch Regler-Maximum)",
+          "solar_min_runtime": "Mindestdauer fuer aktiven Boost um schnelles Hin-und-Her zu vermeiden (Standard: 30 Min.)",
+          "night_pause_start": "Uhrzeit ab der die Fussbodenheizung abgeschaltet wird (Standard: 18:00)",
+          "night_pause_end": "Uhrzeit ab der die Fussbodenheizung wieder auf Automatik gestellt wird (Standard: 09:00)"
+        }
       }
     },
     "error": {
@@ -87,6 +111,14 @@
       },
       "heating_curve_offset": {
         "name": "Heizkurven-Verschiebung"
+      }
+    },
+    "switch": {
+      "solar_boost_enabled": {
+        "name": "Solar Boost"
+      },
+      "night_pause_enabled": {
+        "name": "Nacht-Heizungspause"
       }
     }
   }
