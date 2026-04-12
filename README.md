@@ -1,3 +1,18 @@
+<!--
+Keywords: luxtronik, luxtronik 2.0, luxtronik 2, heat pump, waermepumpe, wärmepumpe,
+home assistant, hacs, hacs integration, custom integration, smart home,
+alpha innotec, novelan, buderus, nibe, roth, elco, wolf,
+sg-ready, sg ready, solar boost, energy management, energiemanagement,
+modbus, modbus tcp, port 8889, binary protocol,
+temperature sensor, heating control, hot water, warmwasser,
+floor heating, fussbodenheizung, fußbodenheizung,
+multi-layer buffer tank, mehrschichtspeicher, durchlauferhitzer,
+solar surplus, solarüberschuss, netzeinspeisung, grid feed-in,
+night heating pause, nacht heizungspause,
+parameter backup, parameter sicherung,
+evcc, photovoltaik, pv überschuss
+-->
+
 <p align="center">
   <img src="custom_components/luxtronik2_hass/brand/icon@2x.png" alt="Luxtronik 2.0 Logo" width="128">
 </p>
