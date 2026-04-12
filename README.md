@@ -66,6 +66,10 @@ This path is **not yet available**. Track progress in the repository milestones.
 - **English + German translations** built in
 - **Stable entity IDs**: entities use the device-name prefix `luxtronik_2_0_*` — they do not change if you rename the integration
 
+### Dashboard Preview
+
+![Dashboard example showing all Luxtronik 2.0 entities](docs/images/dashboard-waermepumpe.png)
+
 ## Requirements
 
 - Home Assistant **2024.1** or newer

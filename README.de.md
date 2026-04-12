@@ -66,6 +66,10 @@ Dieser Pfad ist **noch nicht verfügbar**. Den Fortschritt kannst du in den Repo
 - **Englische und deutsche Übersetzungen** eingebaut
 - **Stabile Entity‑IDs**: Entities verwenden das Gerätenamen‑Präfix `luxtronik_2_0_*` — sie ändern sich nicht, wenn die Integration umbenannt wird
 
+### Dashboard-Vorschau
+
+![Dashboard-Beispiel mit allen Luxtronik 2.0 Entities](docs/images/dashboard-waermepumpe.png)
+
 ## Voraussetzungen
 
 - Home Assistant **2024.1** oder neuer
