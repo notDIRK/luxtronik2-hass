@@ -1,0 +1,193 @@
+title: "Wärmepumpe"
+views:
+  - title: "Übersicht"
+    path: uebersicht
+    icon: "mdi:heat-pump"
+    cards:
+      # --- Header ---
+      - type: markdown
+        content: |
+          ## 🏠 Alpha Innotec MSW 14 — Luxtronik 2.0
+          **Host:** your-heatpump-ip · **Port:** 8889
+
+      # --- Betriebsstatus ---
+      - type: entities
+        title: "⚡ Betriebsstatus"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_operating_mode
+            name: "Betriebsmodus"
+            icon: "mdi:state-machine"
+          # EVUin: False = Kontakt offen = GESPERRT, True = Kontakt geschlossen = FREI
+          - type: conditional
+            conditions:
+              - entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+                state: "False"
+            row:
+              entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+              name: "EVU-Sperre: GESPERRT (Kontakt offen)"
+              icon: "mdi:lock-alert"
+          - type: conditional
+            conditions:
+              - entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+                state: "True"
+            row:
+              entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+              name: "EVU-Freigabe: FREI (Kontakt geschlossen)"
+              icon: "mdi:lock-open-variant"
+          - entity: sensor.luxtronik_2_0_luxtronik_status
+            name: "WP-Status"
+            icon: "mdi:information-outline"
+          - entity: sensor.luxtronik_2_0_luxtronik_status_reason
+            name: "Status-Grund"
+            icon: "mdi:help-circle-outline"
+          # EVU-Sperrzeit: laufende Dauer seit EVU den Kompressor gesperrt hat.
+          # Die Luxtronik zeigt diesen Wert auf dem Display als "Sperrzeit" an.
+          - type: template
+            entity: sensor.luxtronik_2_0_luxtronik_status_duration
+            name: "EVU-Sperrzeit"
+            state: "{{ ((states('sensor.luxtronik_2_0_luxtronik_status_duration') | int(0)) // 3600) }}h {{ (((states('sensor.luxtronik_2_0_luxtronik_status_duration') | int(0)) % 3600) // 60) }}min"
+            icon: "mdi:timer-lock"
+          - entity: sensor.luxtronik_2_0_luxtronik_compressor
+            name: "Kompressor"
+            icon: "mdi:engine"
+          - entity: select.luxtronik_2_0_sg_ready
+            name: "SG-Ready Modus"
+            icon: "mdi:solar-power"
+
+      # --- Steuerung ---
+      - type: entities
+        title: "🎛️ Steuerung"
+        show_header_toggle: false
+        entities:
+          - entity: select.luxtronik_2_0_heizmodus
+            name: "Heizmodus"
+            icon: "mdi:radiator"
+          - entity: select.luxtronik_2_0_warmwassermodus
+            name: "Warmwassermodus"
+            icon: "mdi:water-boiler"
+          - entity: number.luxtronik_2_0_heizkurven_verschiebung
+            name: "Heizkurven-Verschiebung"
+            icon: "mdi:chart-bell-curve"
+          - entity: number.luxtronik_2_0_warmwasser_solltemperatur
+            name: "Warmwasser Solltemperatur"
+            icon: "mdi:thermometer-water"
+
+      # --- Temperaturen (Gauge-Karten) ---
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_outside_temperature
+            name: "Außen"
+            min: -20
+            max: 45
+            severity:
+              green: 10
+              yellow: 0
+              red: -20
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_hot_water_temperature
+            name: "Warmwasser"
+            min: 20
+            max: 70
+            severity:
+              green: 45
+              yellow: 35
+              red: 20
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_flow_temperature
+            name: "Vorlauf"
+            min: 15
+            max: 55
+            severity:
+              green: 20
+              yellow: 35
+              red: 45
+
+      # --- Alle Temperaturen ---
+      - type: entities
+        title: "🌡️ Temperaturen"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_outside_temperature
+            name: "Außentemperatur"
+            icon: "mdi:thermometer"
+          - entity: sensor.luxtronik_2_0_luxtronik_flow_temperature
+            name: "Vorlauftemperatur (Fußbodenheizung)"
+            icon: "mdi:heating-coil"
+          - entity: sensor.luxtronik_2_0_luxtronik_return_temperature
+            name: "Rücklauftemperatur"
+            icon: "mdi:pipe-valve"
+          - entity: sensor.luxtronik_2_0_luxtronik_hot_water_temperature
+            name: "Warmwasser aktuell"
+            icon: "mdi:water-thermometer"
+          - entity: sensor.luxtronik_2_0_luxtronik_source_inlet_temperature
+            name: "Sole Eintritt (aus Erdreich)"
+            icon: "mdi:arrow-down-bold-circle"
+          - entity: sensor.luxtronik_2_0_luxtronik_source_outlet_temperature
+            name: "Sole Austritt (zum Erdreich)"
+            icon: "mdi:arrow-up-bold-circle"
+
+      # --- Betriebsstunden ---
+      - type: entities
+        title: "⏱️ Betriebsstunden"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_pump_operating_hours
+            name: "Wärmepumpe gesamt"
+            icon: "mdi:timer"
+          - entity: sensor.luxtronik_2_0_luxtronik_compressor_operating_hours
+            name: "Verdichter"
+            icon: "mdi:timer-cog"
+          - entity: sensor.luxtronik_2_0_luxtronik_heating_operating_hours
+            name: "Heizkreis"
+            icon: "mdi:radiator"
+          - entity: sensor.luxtronik_2_0_luxtronik_hot_water_operating_hours
+            name: "Warmwasser"
+            icon: "mdi:water-boiler"
+
+      # --- Sollwerte / Grenzwerte ---
+      - type: entities
+        title: "🎯 Sollwerte & Grenzwerte"
+        show_header_toggle: false
+        entities:
+          - entity: number.luxtronik_2_0_warmwasser_solltemperatur
+            name: "Warmwasser Soll"
+            icon: "mdi:target"
+          - entity: number.luxtronik_2_0_heizkurven_verschiebung
+            name: "Heizkurve Parallelverschiebung"
+            icon: "mdi:chart-bell-curve-cumulative"
+
+      # --- Sicherung ---
+      - type: entities
+        title: "💾 Sicherung"
+        show_header_toggle: false
+        entities:
+          - entity: button.luxtronik_2_0_luxtronik_backup_parameters
+            name: "Parameter sichern"
+            icon: "mdi:content-save"
+          - entity: sensor.luxtronik_2_0_luxtronik_last_backup
+            name: "Letzte Sicherung"
+            icon: "mdi:backup-restore"
+
+      # --- Info ---
+      - type: markdown
+        title: "ℹ️ Betriebsmodus-Erklärung"
+        content: |
+          | Modus | Bedeutung |
+          |-------|-----------|
+          | **Heating** | Heizung aktiv — Fußbodenheizung wird versorgt |
+          | **Hot Water** | Warmwasserbereitung aktiv |
+          | **Evu** | ⚠️ **EVU-Sperrzeit** — Energieversorger sperrt den Kompressor über den Rundsteuerempfänger (Kontakt geöffnet). WP darf nicht laufen bis der Netzbetreiber den Kontakt wieder schließt. |
+          | **Defrost** | Abtauung läuft |
+          | **No Request** | Kein Bedarf — WP steht still |
+          | **Cooling** | Kühlung aktiv (falls konfiguriert) |
+
+          ---
+          **SG-Ready Modi:**
+          | Modus | Bedeutung |
+          |-------|-----------|
+          | Off (Mode 0) | SG-Ready deaktiviert |
+          | Blocking (Mode 1) | ⚠️ Sperrbetrieb — WP gesperrt |
+          | Standard (Mode 2) | Normalbetrieb |
+          | Boost (Mode 3) | Anlaufempfehlung — PV-Überschuss nutzen |

@@ -328,6 +328,17 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         lux_index=65,
         value_fn=_lux_calcs.calculations[65].from_heatpump,
     ),
+    # EVU lockout contact status — calc[31] (ID_WEB_EVUin).
+    # Bool: False = contact open = LOCKED OUT, True = contact closed = FREE.
+    # Dashboard uses this for conditional EVU-Sperre/EVU-Freigabe display.
+    LuxtronikSensorEntityDescription(
+        key="evu_lockout_status",
+        name="Luxtronik EVU Lockout Status",
+        icon="mdi:electric-switch-closed",
+        data_source="calculations",
+        lux_index=31,
+        value_fn=lambda raw: str(_lux_calcs.calculations[31].from_heatpump(raw)),
+    ),
     # Status display — what the Luxtronik main menu shows.
     # calc[117]: Status line 1 (e.g., "heatpump idle", "heatpump running")
     LuxtronikSensorEntityDescription(
@@ -339,6 +350,19 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         value_fn=lambda raw: (
             _lux_calcs.calculations[117].from_heatpump(raw).replace("_", " ").title()
             if _lux_calcs.calculations[117].from_heatpump(raw) is not None
+            else None
+        ),
+    ),
+    # calc[119]: Status line 3 — status reason (e.g., "lock time", "flow rate")
+    LuxtronikSensorEntityDescription(
+        key="status_reason",
+        name="Luxtronik Status Reason",
+        icon="mdi:help-circle-outline",
+        data_source="calculations",
+        lux_index=119,
+        value_fn=lambda raw: (
+            _lux_calcs.calculations[119].from_heatpump(raw).replace("_", " ").title()
+            if _lux_calcs.calculations[119].from_heatpump(raw) is not None
             else None
         ),
     ),
@@ -363,7 +387,7 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
 # These 10 indices are already covered by CORE_SENSOR_DESCRIPTIONS above.
 # ---------------------------------------------------------------------------
 
-_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 38, 39, 40, 43, 44, 46, 47, 56, 63, 64, 65, 80, 117, 120, 257})
+_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 31, 38, 39, 40, 43, 44, 46, 47, 56, 63, 64, 65, 80, 117, 119, 120, 257})
 
 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
