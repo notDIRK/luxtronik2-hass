@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="custom_components/luxtronik2_hass/brand/icon@2x.png" alt="Luxtronik 2.0 Logo" width="128">
+</p>
+
 # Luxtronik 2.0 — Home Assistant Integration
 
 **Home Assistant is the primary, actively maintained way to use this project.** This repository ships a HACS custom integration that talks directly to Luxtronik 2.0 heat pump controllers and exposes them as Home Assistant entities. A separate legacy Modbus TCP proxy exists as an unmaintained byproduct for users who specifically need raw Modbus access.
