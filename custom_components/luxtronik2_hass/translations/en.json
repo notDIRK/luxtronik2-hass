@@ -23,44 +23,62 @@
   "options": {
     "step": {
       "init": {
-        "title": "Luxtronik 2.0 Settings",
-        "description": "Adjust connection settings for your heat pump controller.",
+        "title": "Luxtronik 2.0 — Settings",
+        "description": "Choose what you want to configure.",
+        "menu_options": {
+          "connection": "Connection Settings — IP address and poll interval",
+          "solar_boost": "Solar Boost — Use surplus solar energy to heat hot water (optional)",
+          "night_pause": "Night Heating Pause — Disable floor heating at night (optional)",
+          "dashboard_info": "Dashboard Setup — How to create the example dashboard"
+        }
+      },
+      "connection": {
+        "title": "Connection Settings",
+        "description": "Configure how the integration connects to your Luxtronik 2.0 controller.",
         "data": {
           "host": "IP Address",
           "poll_interval": "Poll Interval (seconds)"
         },
         "data_description": {
-          "host": "Local IP address or hostname of the Luxtronik 2.0 controller",
-          "poll_interval": "How often to read data from the heat pump (10-300 seconds, default 30)"
+          "host": "Local IP address of the Luxtronik 2.0 controller (e.g. 192.168.1.100)",
+          "poll_interval": "How often to read data from the heat pump (10–300 seconds, default: 30)"
         }
       },
-      "smart_energy": {
-        "title": "Smart Energy Features",
-        "description": "For heat pumps with multi-layer buffer tanks and DHW heat exchangers: Solar Boost uses surplus grid feed-in to heat the buffer tank. Night Heating Pause disables floor heating overnight to prevent the buffer from cooling down — ensuring hot water is available in the morning.\n\nLeave 'Grid Sensor' empty to disable solar features.",
+      "solar_boost": {
+        "title": "Solar Boost",
+        "description": "**What it does:** When your solar system feeds more than a configurable amount of power into the grid, the hot water setpoint is automatically raised to store the surplus energy in your buffer tank. Once the feed-in drops, the setpoint returns to normal after a minimum runtime.\n\n**Designed for:** Heat pumps with multi-layer buffer tanks and domestic hot water (DHW) heat exchangers. The idea is to use free solar energy to heat your hot water storage instead of exporting it to the grid.\n\n**How to use:** Enter the entity ID of your grid power sensor (positive values = feed-in). Leave the sensor field empty to disable this feature entirely.",
         "data": {
-          "grid_sensor": "Grid Sensor Entity",
-          "solar_boost_enabled": "Solar Boost enabled",
-          "solar_threshold": "Feed-in Threshold (W)",
+          "solar_boost_enabled": "Enable Solar Boost",
+          "grid_sensor": "Grid Power Sensor",
+          "solar_threshold": "Feed-in Threshold (Watts)",
           "solar_normal_temp": "Normal Hot Water Temperature (°C)",
-          "solar_boost_temp": "Boost Hot Water Temperature (°C)",
-          "solar_min_runtime": "Minimum Boost Duration (minutes)",
-          "night_pause_enabled": "Night Heating Pause enabled",
-          "night_pause_start": "Pause Start (HH:MM)",
-          "night_pause_end": "Pause End (HH:MM)"
+          "solar_boost_temp": "Boosted Hot Water Temperature (°C)",
+          "solar_min_runtime": "Minimum Boost Duration (minutes)"
         },
         "data_description": {
-          "grid_sensor": "Entity ID of your grid power sensor (e.g. sensor.grid_total). Positive values = feed-in. Leave empty to disable.",
-          "solar_threshold": "Minimum grid feed-in in watts before boost activates (default: 1500)",
-          "solar_normal_temp": "Hot water setpoint during normal operation (default: 55.5)",
-          "solar_boost_temp": "Hot water setpoint during solar boost (default: 65.0, limited by controller max)",
-          "solar_min_runtime": "Minimum time boost stays active to prevent rapid cycling (default: 30 min)",
-          "night_pause_start": "Time when floor heating is turned off (default: 18:00)",
-          "night_pause_end": "Time when floor heating is restored to auto (default: 09:00)"
+          "grid_sensor": "Entity ID of your grid power sensor, e.g. sensor.grid_total. Must report positive values when feeding into the grid. Leave empty to disable Solar Boost.",
+          "solar_threshold": "Solar Boost activates when grid feed-in exceeds this value. Example: 1500 means the heat pump only starts heating when you export more than 1500 W.",
+          "solar_normal_temp": "The normal hot water setpoint used when Solar Boost is not active. This is the temperature your hot water tank is normally heated to.",
+          "solar_boost_temp": "The raised hot water setpoint during Solar Boost. This should not exceed your controller's maximum allowed hot water temperature.",
+          "solar_min_runtime": "Once Solar Boost activates, it stays active for at least this many minutes — even if clouds reduce feed-in temporarily. This prevents the heat pump from cycling on/off rapidly."
+        }
+      },
+      "night_pause": {
+        "title": "Night Heating Pause",
+        "description": "**What it does:** Automatically turns off floor heating during the night and restores it in the morning.\n\n**Why this matters:** In systems with a multi-layer buffer tank and DHW heat exchanger, the floor heating circuit can cool down the buffer tank overnight. This means there may not be enough hot water in the morning. By pausing the floor heating at night, the buffer tank stays warm for your morning shower.\n\n**How it works:** During the configured time window, the heating mode is set to 'Off'. Outside the window, it is restored to 'Automatic'.",
+        "data": {
+          "night_pause_enabled": "Enable Night Heating Pause",
+          "night_pause_start": "Pause Start Time (HH:MM)",
+          "night_pause_end": "Pause End Time (HH:MM)"
+        },
+        "data_description": {
+          "night_pause_start": "Time when floor heating is turned off. Example: 18:00 means heating stops at 6 PM.",
+          "night_pause_end": "Time when floor heating is restored to automatic mode. Example: 09:00 means heating resumes at 9 AM."
         }
       },
       "dashboard_info": {
         "title": "Dashboard Setup",
-        "description": "A ready-to-use dashboard is available for this integration.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Waermepumpe') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from the repository file `docs/examples/dashboard-waermepumpe.yaml`\n5. Replace `your-heatpump-ip` with your actual heat pump IP\n6. Click **Save**, then **Done**\n\n**Dashboard YAML:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml\n\nThe dashboard shows operating status, temperatures, pump states, operating hours, setpoints, and controls."
+        "description": "A ready-to-use dashboard is included with this integration. It shows all heat pump data at a glance: operating status, temperatures, pump states, operating hours, setpoints, and controls.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Waermepumpe') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from the link below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**Dashboard YAML:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
       }
     },
     "error": {

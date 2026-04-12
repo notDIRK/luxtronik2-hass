@@ -185,20 +185,25 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
-        """Handle the options form step.
+        """Show the main options menu.
 
-        Pre-fills the form with current values from the config entry. On
-        submission, strips whitespace from host, runs a connection test if the
-        host changed, persists the new values via async_update_entry, and
-        returns async_create_entry to signal completion.
-
-        Args:
-            user_input: Form data supplied by HA's UI, or None on first render.
-
-        Returns:
-            A FlowResult — either show_form to re-render with errors, or
-            async_create_entry to finish and trigger the update listener.
+        Presents a menu with four choices so users can jump directly to what
+        they want to configure without being forced through all steps.
         """
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=[
+                "connection",
+                "solar_boost",
+                "night_pause",
+                "dashboard_info",
+            ],
+        )
+
+    async def async_step_connection(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure connection settings (IP address and poll interval)."""
         errors: dict[str, str] = {}
 
         current_host: str = self.config_entry.data[CONF_HOST]
@@ -211,23 +216,15 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
             host: str = user_input[CONF_HOST].strip()
             poll_interval: int = user_input["poll_interval"]
 
-            # Only test the connection if the host has changed.
-            # Avoids unnecessary network I/O when the user only changes the interval.
             if host != current_host:
                 try:
                     await self.hass.async_add_executor_job(
                         LuxtronikConfigFlow._test_connection, host, DEFAULT_PORT
                     )
                 except Exception:
-                    _LOGGER.debug(
-                        "Options flow connection test failed for Luxtronik at %s:%d",
-                        host,
-                        DEFAULT_PORT,
-                    )
                     errors["base"] = "cannot_connect"
 
             if not errors:
-                # Persist connection settings, then continue to smart energy step.
                 self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     data={
@@ -237,10 +234,10 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                         "poll_interval": poll_interval,
                     },
                 )
-                return await self.async_step_smart_energy()
+                return self.async_create_entry(title="", data={})
 
         return self.async_show_form(
-            step_id="init",
+            step_id="connection",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HOST, default=current_host): str,
@@ -252,18 +249,13 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_smart_energy(
+    async def async_step_solar_boost(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
-        """Handle the Smart Energy configuration step.
+        """Configure the Solar Boost feature.
 
-        Configures Solar Boost and Night Heating Pause features. All fields
-        are optional — leaving grid_sensor empty disables solar features.
-
-        These features are designed for heat pumps with multi-layer buffer
-        tanks and DHW heat exchangers. Solar boost uses surplus grid feed-in
-        to heat the buffer; night pause prevents the floor heating circuit
-        from cooling the tank overnight.
+        Raises hot water temperature when grid feed-in exceeds a threshold,
+        harvesting surplus solar energy into the buffer tank.
         """
         data = self.config_entry.data
 
@@ -272,10 +264,10 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                 self.config_entry,
                 data={
                     **data,
-                    "grid_sensor": user_input.get("grid_sensor", ""),
                     "solar_boost_enabled": user_input.get(
                         "solar_boost_enabled", DEFAULT_SOLAR_BOOST_ENABLED
                     ),
+                    "grid_sensor": user_input.get("grid_sensor", ""),
                     "solar_threshold": user_input.get(
                         "solar_threshold", DEFAULT_SOLAR_THRESHOLD
                     ),
@@ -288,33 +280,24 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     "solar_min_runtime": user_input.get(
                         "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
                     ),
-                    "night_pause_enabled": user_input.get(
-                        "night_pause_enabled", DEFAULT_NIGHT_PAUSE_ENABLED
-                    ),
-                    "night_pause_start": user_input.get(
-                        "night_pause_start", DEFAULT_NIGHT_PAUSE_START
-                    ),
-                    "night_pause_end": user_input.get(
-                        "night_pause_end", DEFAULT_NIGHT_PAUSE_END
-                    ),
                 },
             )
-            return await self.async_step_dashboard_info()
+            return self.async_create_entry(title="", data={})
 
         return self.async_show_form(
-            step_id="smart_energy",
+            step_id="solar_boost",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        "grid_sensor",
-                        default=data.get("grid_sensor", DEFAULT_GRID_SENSOR),
-                    ): str,
                     vol.Optional(
                         "solar_boost_enabled",
                         default=data.get(
                             "solar_boost_enabled", DEFAULT_SOLAR_BOOST_ENABLED
                         ),
                     ): bool,
+                    vol.Optional(
+                        "grid_sensor",
+                        default=data.get("grid_sensor", DEFAULT_GRID_SENSOR),
+                    ): str,
                     vol.Optional(
                         "solar_threshold",
                         default=data.get("solar_threshold", DEFAULT_SOLAR_THRESHOLD),
@@ -337,6 +320,42 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                             "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
                         ),
                     ): vol.All(int, vol.Range(min=5, max=120)),
+                }
+            ),
+        )
+
+    async def async_step_night_pause(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure the Night Heating Pause feature.
+
+        Disables floor heating during night hours to prevent the buffer tank
+        from cooling down, preserving hot water for the morning.
+        """
+        data = self.config_entry.data
+
+        if user_input is not None:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={
+                    **data,
+                    "night_pause_enabled": user_input.get(
+                        "night_pause_enabled", DEFAULT_NIGHT_PAUSE_ENABLED
+                    ),
+                    "night_pause_start": user_input.get(
+                        "night_pause_start", DEFAULT_NIGHT_PAUSE_START
+                    ),
+                    "night_pause_end": user_input.get(
+                        "night_pause_end", DEFAULT_NIGHT_PAUSE_END
+                    ),
+                },
+            )
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="night_pause",
+            data_schema=vol.Schema(
+                {
                     vol.Optional(
                         "night_pause_enabled",
                         default=data.get(
@@ -362,12 +381,7 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
     async def async_step_dashboard_info(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
-        """Show dashboard setup information.
-
-        This is a read-only info step — submitting the form (clicking Next)
-        finishes the options flow. The description contains step-by-step
-        instructions for creating the example dashboard.
-        """
+        """Show dashboard setup instructions (read-only info step)."""
         if user_input is not None:
             return self.async_create_entry(title="", data={})
 
