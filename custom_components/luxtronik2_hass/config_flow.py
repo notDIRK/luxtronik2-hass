@@ -187,17 +187,34 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Show the main options menu.
 
-        Presents a menu with four choices so users can jump directly to what
-        they want to configure without being forced through all steps.
+        Uses a select field instead of async_show_menu for reliable label
+        display in HACS custom integrations. Routes to the selected step.
         """
-        return self.async_show_menu(
+        if user_input is not None:
+            next_step = user_input.get("section", "connection")
+            if next_step == "connection":
+                return await self.async_step_connection()
+            if next_step == "solar_boost":
+                return await self.async_step_solar_boost()
+            if next_step == "night_pause":
+                return await self.async_step_night_pause()
+            if next_step == "dashboard_info":
+                return await self.async_step_dashboard_info()
+
+        return self.async_show_form(
             step_id="init",
-            menu_options=[
-                "connection",
-                "solar_boost",
-                "night_pause",
-                "dashboard_info",
-            ],
+            data_schema=vol.Schema(
+                {
+                    vol.Required("section", default="connection"): vol.In(
+                        {
+                            "connection": "Connection Settings",
+                            "solar_boost": "Solar Boost (optional)",
+                            "night_pause": "Night Heating Pause (optional)",
+                            "dashboard_info": "Dashboard Setup",
+                        }
+                    ),
+                }
+            ),
         )
 
     async def async_step_connection(

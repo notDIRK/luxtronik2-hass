@@ -24,12 +24,9 @@
     "step": {
       "init": {
         "title": "Luxtronik 2.0 — Einstellungen",
-        "description": "Waehlen Sie, was Sie konfigurieren moechten.",
-        "menu_options": {
-          "connection": "Verbindung — IP-Adresse und Abfrageintervall",
-          "solar_boost": "Solar Boost — Solarueberschuss fuer Warmwasser nutzen (optional)",
-          "night_pause": "Nacht-Heizungspause — Fussbodenheizung nachts abschalten (optional)",
-          "dashboard_info": "Dashboard einrichten — Beispiel-Dashboard erstellen"
+        "description": "Waehlen Sie, was Sie konfigurieren moechten. Smart Energy Funktionen (Solar Boost, Nacht-Pause) sind optional — ueberspringen Sie sie wenn Sie sie nicht benoetigen.",
+        "data": {
+          "section": "Was moechten Sie konfigurieren?"
         }
       },
       "connection": {

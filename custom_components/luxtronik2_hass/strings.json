@@ -24,12 +24,9 @@
     "step": {
       "init": {
         "title": "Luxtronik 2.0 — Settings",
-        "description": "Choose what you want to configure.",
-        "menu_options": {
-          "connection": "Connection Settings — IP address and poll interval",
-          "solar_boost": "Solar Boost — Use surplus solar energy to heat hot water (optional)",
-          "night_pause": "Night Heating Pause — Disable floor heating at night (optional)",
-          "dashboard_info": "Dashboard Setup — How to create the example dashboard"
+        "description": "Choose what you want to configure. Smart Energy features (Solar Boost, Night Pause) are optional — skip them if you don't need them.",
+        "data": {
+          "section": "What do you want to configure?"
         }
       },
       "connection": {
