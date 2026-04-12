@@ -173,37 +173,89 @@ views:
       # German HA: switch.luxtronik_2_0_nacht_heizungspause
       # English HA: switch.luxtronik_2_0_night_heating_pause
       # Adjust the entity IDs below to match your HA language.
-      - type: entities
-        title: "☀️ Smart Energy"
-        show_header_toggle: false
-        entities:
-          - entity: switch.luxtronik_2_0_solar_boost
-            name: "Solar Boost"
-            icon: "mdi:solar-power-variant"
-            secondary_info: last-changed
-          - entity: switch.luxtronik_2_0_night_heating_pause
-            name: "Night Heating Pause"
-            icon: "mdi:weather-night"
-            secondary_info: last-changed
-          - entity: sensor.grid_total
-            name: "Grid Power"
-            icon: "mdi:transmission-tower-export"
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: "☀️ Smart Energy"
+            show_header_toggle: false
+            entities:
+              - entity: switch.luxtronik_2_0_solar_boost
+                name: "Solar Boost"
+                icon: "mdi:solar-power-variant"
+                secondary_info: last-changed
+              - entity: switch.luxtronik_2_0_night_heating_pause
+                name: "Night Heating Pause"
+                icon: "mdi:weather-night"
+                secondary_info: last-changed
+          - type: markdown
+            content: >
+              [Documentation](https://github.com/notDIRK/luxtronik2-hass#smart-energy) ·
+              [Configure](/config/integrations)
 
-      - type: markdown
-        content: |
-          **Smart Energy** — [Documentation](https://github.com/notDIRK/luxtronik2-hass#smart-energy)
 
-          {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') %}
-          ☀️ **Solar Boost active** — Hot water setpoint is raised when grid feed-in exceeds 1500 W, storing free solar energy in the buffer tank.
-          {%- else %}
-          ☀️ Solar Boost off — Hot water stays at normal setpoint.
-          {%- endif %}
+              #### ☀️ Solar Boost
 
-          {%- if is_state('switch.luxtronik_2_0_night_heating_pause', 'on') %}
-          🌙 **Night Heating Pause active** — Floor heating disabled overnight to keep the buffer tank warm for morning hot water.
-          {%- else %}
-          🌙 Night Heating Pause off — Floor heating runs continuously.
-          {%- endif %}
+              {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') %}
+              ✅ **Active**
+              {%- else %}
+              ⏸️ Disabled
+              {%- endif %}
+
+
+              | Setting | Value |
+
+              |---|---|
+
+              | Threshold | **1500 W** feed-in |
+
+              | Normal | **55.5 °C** → Boost: **65.0 °C** |
+
+              | Min. runtime | **30 min** |
+
+              | Sensor | `sensor.grid_total` |
+
+
+              {% set grid = states('sensor.grid_total') | float(0) %}
+              {%- if grid > 0 -%}
+              🔌 **Consuming: {{ grid | round(0) }} W** — no boost
+              {%- elif grid < -1500 -%}
+              🟢 **Feed-in: {{ (grid | abs) | round(0) }} W** — boost condition met!
+              {%- elif grid < 0 -%}
+              🟡 **Feed-in: {{ (grid | abs) | round(0) }} W** — below threshold
+              {%- else -%}
+              ⚡ **0 W** — balanced
+              {%- endif %}
+
+
+              ---
+
+
+              #### 🌙 Night Heating Pause
+
+              {%- if is_state('switch.luxtronik_2_0_night_heating_pause', 'on') %}
+              ✅ **Active**
+              {%- else %}
+              ⏸️ Disabled
+              {%- endif %}
+
+
+              | Setting | Value |
+
+              |---|---|
+
+              | Time window | **18:00 – 09:00** |
+
+              | During window | Heating → **Off** |
+
+              | Outside | Heating → **Automatic** |
+
+
+              {% set h = now().hour %}
+              {%- if h >= 18 or h < 9 -%}
+              🌙 **Night window** — heating paused
+              {%- else -%}
+              ☀️ **Daytime** — heating on automatic
+              {%- endif %}
 
       # --- Info ---
       - type: markdown

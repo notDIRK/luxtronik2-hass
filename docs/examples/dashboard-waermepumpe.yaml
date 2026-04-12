@@ -175,37 +175,89 @@ views:
       # German HA: switch.luxtronik_2_0_nacht_heizungspause
       # English HA: switch.luxtronik_2_0_night_heating_pause
       # Adjust the entity IDs below to match your HA language.
-      - type: entities
-        title: "☀️ Smart Energy"
-        show_header_toggle: false
-        entities:
-          - entity: switch.luxtronik_2_0_solar_boost
-            name: "Solar Boost"
-            icon: "mdi:solar-power-variant"
-            secondary_info: last-changed
-          - entity: switch.luxtronik_2_0_nacht_heizungspause
-            name: "Nacht-Heizungspause"
-            icon: "mdi:weather-night"
-            secondary_info: last-changed
-          - entity: sensor.grid_total
-            name: "Netzeinspeisung"
-            icon: "mdi:transmission-tower-export"
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: "☀️ Smart Energy"
+            show_header_toggle: false
+            entities:
+              - entity: switch.luxtronik_2_0_solar_boost
+                name: "Solar Boost"
+                icon: "mdi:solar-power-variant"
+                secondary_info: last-changed
+              - entity: switch.luxtronik_2_0_nacht_heizungspause
+                name: "Nacht-Heizungspause"
+                icon: "mdi:weather-night"
+                secondary_info: last-changed
+          - type: markdown
+            content: >
+              [Dokumentation](https://github.com/notDIRK/luxtronik2-hass#smart-energy) ·
+              [Konfigurieren](/config/integrations)
 
-      - type: markdown
-        content: |
-          **Smart Energy** — [Dokumentation](https://github.com/notDIRK/luxtronik2-hass#smart-energy)
 
-          {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') %}
-          ☀️ **Solar Boost aktiv** — Warmwasser-Solltemperatur wird bei Solarüberschuss (>1500W Einspeisung) automatisch angehoben, um den Speicher mit kostenloser Solarenergie aufzuheizen.
-          {%- else %}
-          ☀️ Solar Boost aus — Warmwasser bleibt auf Normaltemperatur.
-          {%- endif %}
+              #### ☀️ Solar Boost
 
-          {%- if is_state('switch.luxtronik_2_0_nacht_heizungspause', 'on') %}
-          🌙 **Nacht-Heizungspause aktiv** — Fußbodenheizung wird nachts abgeschaltet, damit der Mehrschichtspeicher nicht auskühlt und morgens genug Warmwasser bereit steht.
-          {%- else %}
-          🌙 Nacht-Heizungspause aus — Fußbodenheizung läuft durchgehend.
-          {%- endif %}
+              {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') %}
+              ✅ **Aktiv**
+              {%- else %}
+              ⏸️ Deaktiviert
+              {%- endif %}
+
+
+              | Einstellung | Wert |
+
+              |---|---|
+
+              | Schwellwert | **1500 W** Einspeisung |
+
+              | Normal | **55,5 °C** → Boost: **65,0 °C** |
+
+              | Mindestlaufzeit | **30 Min.** |
+
+              | Sensor | `sensor.grid_total` |
+
+
+              {% set grid = states('sensor.grid_total') | float(0) %}
+              {%- if grid > 0 -%}
+              🔌 **Netzbezug: {{ grid | round(0) }} W** — kein Boost
+              {%- elif grid < -1500 -%}
+              🟢 **Einspeisung: {{ (grid | abs) | round(0) }} W** — Boost-Bedingung erfüllt!
+              {%- elif grid < 0 -%}
+              🟡 **Einspeisung: {{ (grid | abs) | round(0) }} W** — unter Schwellwert
+              {%- else -%}
+              ⚡ **0 W** — ausgeglichen
+              {%- endif %}
+
+
+              ---
+
+
+              #### 🌙 Nacht-Heizungspause
+
+              {%- if is_state('switch.luxtronik_2_0_nacht_heizungspause', 'on') %}
+              ✅ **Aktiv**
+              {%- else %}
+              ⏸️ Deaktiviert
+              {%- endif %}
+
+
+              | Einstellung | Wert |
+
+              |---|---|
+
+              | Zeitfenster | **18:00 – 09:00** |
+
+              | Im Fenster | Heizung → **Aus** |
+
+              | Außerhalb | Heizung → **Automatik** |
+
+
+              {% set h = now().hour %}
+              {%- if h >= 18 or h < 9 -%}
+              🌙 **Im Nacht-Fenster** — Heizung pausiert
+              {%- else -%}
+              ☀️ **Tagbetrieb** — Heizung auf Automatik
+              {%- endif %}
 
       # --- Info ---
       - type: markdown
