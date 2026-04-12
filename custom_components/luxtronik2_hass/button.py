@@ -280,7 +280,6 @@ class LuxtronikBathBoostButton(ButtonEntity):
     """
 
     _attr_icon = "mdi:water-boiler"
-    _attr_entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
     _attr_translation_key = "bath_boost"
 
