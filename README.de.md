@@ -68,7 +68,33 @@ Dieser Pfad ist **noch nicht verfügbar**. Den Fortschritt kannst du in den Repo
 
 ### Dashboard-Vorschau
 
-![Dashboard-Beispiel mit allen Luxtronik 2.0 Entities](docs/images/dashboard-waermepumpe.png)
+![Dashboard-Beispiel mit allen Luxtronik 2.0 Entities](docs/images/dashboard-demo.png)
+
+### Dashboard einrichten
+
+Ein fertiges Dashboard-YAML ist in diesem Repository enthalten. So richtest du es ein:
+
+1. In Home Assistant: **Einstellungen → Dashboards → Dashboard hinzufügen**
+2. Name vergeben (z.B. "Waermepumpe") und Icon wählen (`mdi:heat-pump`)
+3. Neues Dashboard öffnen → **⋮** (oben rechts) → **Dashboard bearbeiten** → **⋮** → **Roher Konfigurationseditor**
+4. Den gesamten Inhalt durch das YAML aus [`docs/examples/dashboard-waermepumpe.yaml`](docs/examples/dashboard-waermepumpe.yaml) ersetzen
+5. In Zeile 11 `your-heatpump-ip` durch die tatsächliche IP-Adresse deiner Wärmepumpe ersetzen
+6. **Speichern** klicken, dann **Fertig**
+
+Das Dashboard zeigt Betriebsstatus, Temperaturen, Pumpenzustände, Betriebsstunden, Sollwerte und Steuerung — alles mit den stabilen `luxtronik_2_0_*` Entity-IDs.
+
+<details>
+<summary>Klicken um das Dashboard-YAML anzuzeigen</summary>
+
+```yaml
+# Kopiere dies in den Rohen Konfigurationseditor deines Dashboards.
+# Ersetze "your-heatpump-ip" durch die IP-Adresse deiner Wärmepumpe.
+# Vollständige Datei: docs/examples/dashboard-waermepumpe.yaml
+```
+
+Siehe die vollständige YAML-Datei: [dashboard-waermepumpe.yaml](docs/examples/dashboard-waermepumpe.yaml)
+
+</details>
 
 ## Voraussetzungen
 
