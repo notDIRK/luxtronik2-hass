@@ -321,16 +321,16 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     ): vol.All(int, vol.Range(min=0, max=20000)),
                     vol.Optional(
                         "solar_normal_temp",
-                        default=data.get(
+                        default=float(data.get(
                             "solar_normal_temp", DEFAULT_SOLAR_NORMAL_TEMP
-                        ),
-                    ): vol.All(float, vol.Range(min=30.0, max=65.0)),
+                        )),
+                    ): vol.Coerce(float),
                     vol.Optional(
                         "solar_boost_temp",
-                        default=data.get(
+                        default=float(data.get(
                             "solar_boost_temp", DEFAULT_SOLAR_BOOST_TEMP
-                        ),
-                    ): vol.All(float, vol.Range(min=30.0, max=65.0)),
+                        )),
+                    ): vol.Coerce(float),
                     vol.Optional(
                         "solar_min_runtime",
                         default=data.get(
