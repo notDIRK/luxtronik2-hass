@@ -43,7 +43,7 @@
       },
       "solar_boost": {
         "title": "Solar Boost",
-        "description": "**Was es tut:** Wenn Ihre Solaranlage mehr als einen einstellbaren Schwellwert ins Netz einspeist, wird die Warmwasser-Solltemperatur automatisch angehoben, um die ueberschuessige Energie im Speicher zu speichern. Sobald die Einspeisung sinkt, wird nach einer Mindestlaufzeit wieder auf die normale Temperatur zurueckgestellt.\n\n**Gedacht fuer:** Waermepumpen mit Mehrschichtspeicher und Warmwasser-Durchlauferhitzer. Die Idee: Kostenlose Solarenergie zum Aufheizen des Warmwasserspeichers nutzen, statt sie ins Netz einzuspeisen.\n\n**So nutzen Sie es:** Tragen Sie die Entity-ID Ihres Netz-Sensors ein (positive Werte = Einspeisung). Lassen Sie das Feld leer, um Solar Boost komplett zu deaktivieren.",
+        "description": "**Was es tut:** Wenn Ihre Solaranlage mehr als einen einstellbaren Schwellwert ins Netz einspeist, wird die Warmwasser-Solltemperatur automatisch angehoben, um die ueberschuessige Energie im Speicher zu speichern. Sobald die Einspeisung sinkt, wird nach einer Mindestlaufzeit wieder auf die normale Temperatur zurueckgestellt.\n\n**Gedacht fuer:** Waermepumpen mit Mehrschichtspeicher und Warmwasser-Durchlauferhitzer. Die Idee: Kostenlose Solarenergie zum Aufheizen des Warmwasserspeichers nutzen, statt sie ins Netz einzuspeisen.\n\n**So nutzen Sie es:** Tragen Sie die Entity-ID Ihres Netz-Sensors ein. Konvention: positiv = Netzbezug, negativ = Einspeisung. Lassen Sie das Feld leer, um Solar Boost komplett zu deaktivieren.",
         "data": {
           "solar_boost_enabled": "Solar Boost aktivieren",
           "grid_sensor": "Netz-Sensor",
@@ -53,7 +53,7 @@
           "solar_min_runtime": "Mindest-Boost-Dauer (Minuten)"
         },
         "data_description": {
-          "grid_sensor": "Entity-ID Ihres Netzleistungs-Sensors, z.B. sensor.grid_total. Muss positive Werte bei Einspeisung melden. Leer lassen zum Deaktivieren.",
+          "grid_sensor": "Entity-ID Ihres Netzleistungs-Sensors, z.B. sensor.grid_total. Konvention: positiv = Netzbezug (Verbrauch), negativ = Einspeisung (Verkauf). Leer lassen zum Deaktivieren.",
           "solar_threshold": "Solar Boost wird aktiviert wenn die Netzeinspeisung diesen Wert uebersteigt. Beispiel: 1500 bedeutet, dass die Waermepumpe erst aufheizt wenn Sie mehr als 1500 W einspeisen.",
           "solar_normal_temp": "Die normale Warmwasser-Solltemperatur wenn Solar Boost nicht aktiv ist. Das ist die Temperatur auf die Ihr Warmwasserspeicher normalerweise geheizt wird.",
           "solar_boost_temp": "Die erhoehte Warmwasser-Solltemperatur waehrend Solar Boost. Sollte die maximal erlaubte Warmwassertemperatur Ihres Reglers nicht ueberschreiten.",

@@ -215,7 +215,8 @@ class SmartEnergyManager:
     async def _evaluate_solar_boost(self) -> None:
         """Evaluate whether to activate or deactivate solar boost.
 
-        Activates boost when grid feed-in exceeds threshold.
+        Grid sensor convention: positive = consumption, negative = feed-in.
+        Boost activates when feed-in exceeds threshold (grid_power < -threshold).
         Deactivates only after minimum runtime has elapsed.
         """
         if not self.solar_boost_enabled or not self.grid_sensor:
@@ -223,7 +224,7 @@ class SmartEnergyManager:
                 await self._deactivate_boost()
             return
 
-        # Read grid sensor value
+        # Read grid sensor value (positive = consumption, negative = feed-in)
         state = self.hass.states.get(self.grid_sensor)
         if state is None or state.state in ("unknown", "unavailable"):
             return
@@ -235,12 +236,14 @@ class SmartEnergyManager:
 
         now = datetime.now()
 
-        if grid_power > self.solar_threshold:
+        # Negative grid_power means feeding into the grid.
+        # Boost when feed-in exceeds threshold: e.g. grid=-2000W, threshold=1500 → -2000 < -1500 → True
+        if grid_power < -self.solar_threshold:
             # Feed-in exceeds threshold — activate boost if not already active
             if not self._boost_active:
                 await self._activate_boost()
         else:
-            # Below threshold — deactivate only if min runtime elapsed
+            # Below threshold (consuming or not enough feed-in) — deactivate only if min runtime elapsed
             if self._boost_active and self._boost_activated_at:
                 elapsed = (now - self._boost_activated_at).total_seconds() / 60
                 if elapsed >= self.solar_min_runtime:
