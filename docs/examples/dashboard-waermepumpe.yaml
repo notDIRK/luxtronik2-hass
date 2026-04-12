@@ -170,6 +170,35 @@ views:
             name: "Letzte Sicherung"
             icon: "mdi:backup-restore"
 
+      # --- Smart Energy ---
+      - type: entities
+        title: "☀️ Smart Energy"
+        show_header_toggle: false
+        entities:
+          - entity: switch.luxtronik_2_0_solar_boost
+            name: "Solar Boost"
+            icon: "mdi:solar-power-variant"
+          - entity: switch.luxtronik_2_0_night_heating_pause
+            name: "Nacht-Heizungspause"
+            icon: "mdi:weather-night"
+          - entity: sensor.grid_total
+            name: "Netzeinspeisung"
+            icon: "mdi:transmission-tower-export"
+
+      - type: markdown
+        content: |
+          {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') -%}
+          ☀️ **Solar Boost aktiv** — Warmwasser wird mit Solarüberschuss aufgeheizt
+          {%- else -%}
+          Solar Boost aus
+          {%- endif -%}
+
+          {%- if is_state('switch.luxtronik_2_0_night_heating_pause', 'on') -%}
+          🌙 **Nacht-Heizungspause aktiv** — Fußbodenheizung nachts abgeschaltet
+          {%- else -%}
+          Nacht-Heizungspause aus
+          {%- endif -%}
+
       # --- Info ---
       - type: markdown
         title: "ℹ️ Betriebsmodus-Erklärung"
