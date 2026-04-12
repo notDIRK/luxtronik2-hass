@@ -1,0 +1,228 @@
+title: "Heat Pump"
+views:
+  - title: "Overview"
+    path: overview
+    icon: "mdi:heat-pump"
+    cards:
+      # --- Header ---
+      - type: markdown
+        content: |
+          ## 🏠 Alpha Innotec MSW 14 — Luxtronik 2.0
+          **Host:** your-heatpump-ip · **Port:** 8889
+
+      # --- Operating Status ---
+      - type: entities
+        title: "⚡ Operating Status"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_operating_mode
+            name: "Operating Mode"
+            icon: "mdi:state-machine"
+          # EVUin: False = contact open = LOCKED, True = contact closed = FREE
+          - type: conditional
+            conditions:
+              - entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+                state: "False"
+            row:
+              entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+              name: "Grid Lockout: LOCKED (contact open)"
+              icon: "mdi:lock-alert"
+          - type: conditional
+            conditions:
+              - entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+                state: "True"
+            row:
+              entity: sensor.luxtronik_2_0_luxtronik_evu_lockout_status
+              name: "Grid Lockout: FREE (contact closed)"
+              icon: "mdi:lock-open-variant"
+          - entity: sensor.luxtronik_2_0_luxtronik_status
+            name: "HP Status"
+            icon: "mdi:information-outline"
+          - entity: sensor.luxtronik_2_0_luxtronik_status_reason
+            name: "Status Reason"
+            icon: "mdi:help-circle-outline"
+          - type: template
+            entity: sensor.luxtronik_2_0_luxtronik_status_duration
+            name: "Status Duration"
+            state: "{{ ((states('sensor.luxtronik_2_0_luxtronik_status_duration') | int(0)) // 3600) }}h {{ (((states('sensor.luxtronik_2_0_luxtronik_status_duration') | int(0)) % 3600) // 60) }}min"
+            icon: "mdi:timer-sand"
+          - entity: sensor.luxtronik_2_0_luxtronik_compressor
+            name: "Compressor"
+            icon: "mdi:engine"
+          - entity: select.luxtronik_2_0_sg_ready
+            name: "SG-Ready Mode"
+            icon: "mdi:solar-power"
+
+      # --- Controls ---
+      - type: entities
+        title: "🎛️ Controls"
+        show_header_toggle: false
+        entities:
+          - entity: select.luxtronik_2_0_heizmodus
+            name: "Heating Mode"
+            icon: "mdi:radiator"
+          - entity: select.luxtronik_2_0_warmwassermodus
+            name: "Hot Water Mode"
+            icon: "mdi:water-boiler"
+          - entity: number.luxtronik_2_0_heizkurven_verschiebung
+            name: "Heating Curve Offset"
+            icon: "mdi:chart-bell-curve"
+          - entity: number.luxtronik_2_0_warmwasser_solltemperatur
+            name: "Hot Water Setpoint"
+            icon: "mdi:thermometer-water"
+
+      # --- Temperature Gauges ---
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_outside_temperature
+            name: "Outside"
+            min: -20
+            max: 45
+            severity:
+              green: 10
+              yellow: 0
+              red: -20
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_hot_water_temperature
+            name: "Hot Water"
+            min: 20
+            max: 70
+            severity:
+              green: 45
+              yellow: 35
+              red: 20
+          - type: gauge
+            entity: sensor.luxtronik_2_0_luxtronik_flow_temperature
+            name: "Flow"
+            min: 15
+            max: 55
+            severity:
+              green: 20
+              yellow: 35
+              red: 45
+
+      # --- All Temperatures ---
+      - type: entities
+        title: "🌡️ Temperatures"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_outside_temperature
+            name: "Outside Temperature"
+            icon: "mdi:thermometer"
+          - entity: sensor.luxtronik_2_0_luxtronik_flow_temperature
+            name: "Flow Temperature (Floor Heating)"
+            icon: "mdi:heating-coil"
+          - entity: sensor.luxtronik_2_0_luxtronik_return_temperature
+            name: "Return Temperature"
+            icon: "mdi:pipe-valve"
+          - entity: sensor.luxtronik_2_0_luxtronik_hot_water_temperature
+            name: "Hot Water Temperature"
+            icon: "mdi:water-thermometer"
+          - entity: sensor.luxtronik_2_0_luxtronik_source_inlet_temperature
+            name: "Source Inlet (from Ground)"
+            icon: "mdi:arrow-down-bold-circle"
+          - entity: sensor.luxtronik_2_0_luxtronik_source_outlet_temperature
+            name: "Source Outlet (to Ground)"
+            icon: "mdi:arrow-up-bold-circle"
+
+      # --- Operating Hours ---
+      - type: entities
+        title: "⏱️ Operating Hours"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_pump_operating_hours
+            name: "Heat Pump Total"
+            icon: "mdi:timer"
+          - entity: sensor.luxtronik_2_0_luxtronik_compressor_operating_hours
+            name: "Compressor"
+            icon: "mdi:timer-cog"
+          - entity: sensor.luxtronik_2_0_luxtronik_heating_operating_hours
+            name: "Heating Circuit"
+            icon: "mdi:radiator"
+          - entity: sensor.luxtronik_2_0_luxtronik_hot_water_operating_hours
+            name: "Hot Water"
+            icon: "mdi:water-boiler"
+
+      # --- Setpoints ---
+      - type: entities
+        title: "🎯 Setpoints"
+        show_header_toggle: false
+        entities:
+          - entity: number.luxtronik_2_0_warmwasser_solltemperatur
+            name: "Hot Water Setpoint"
+            icon: "mdi:target"
+          - entity: number.luxtronik_2_0_heizkurven_verschiebung
+            name: "Heating Curve Offset"
+            icon: "mdi:chart-bell-curve-cumulative"
+
+      # --- Backup ---
+      - type: entities
+        title: "💾 Backup"
+        show_header_toggle: false
+        entities:
+          - entity: button.luxtronik_2_0_luxtronik_backup_parameters
+            name: "Backup Parameters"
+            icon: "mdi:content-save"
+          - entity: sensor.luxtronik_2_0_luxtronik_last_backup
+            name: "Last Backup"
+            icon: "mdi:backup-restore"
+
+      # --- Smart Energy ---
+      # Note: Entity names depend on your HA language setting.
+      # German HA: switch.luxtronik_2_0_nacht_heizungspause
+      # English HA: switch.luxtronik_2_0_night_heating_pause
+      # Adjust the entity IDs below to match your HA language.
+      - type: entities
+        title: "☀️ Smart Energy"
+        show_header_toggle: false
+        entities:
+          - entity: switch.luxtronik_2_0_solar_boost
+            name: "Solar Boost"
+            icon: "mdi:solar-power-variant"
+            secondary_info: last-changed
+          - entity: switch.luxtronik_2_0_night_heating_pause
+            name: "Night Heating Pause"
+            icon: "mdi:weather-night"
+            secondary_info: last-changed
+          - entity: sensor.grid_total
+            name: "Grid Power"
+            icon: "mdi:transmission-tower-export"
+
+      - type: markdown
+        content: |
+          **Smart Energy** — [Documentation](https://github.com/notDIRK/luxtronik2-hass#smart-energy)
+
+          {%- if is_state('switch.luxtronik_2_0_solar_boost', 'on') %}
+          ☀️ **Solar Boost active** — Hot water setpoint is raised when grid feed-in exceeds 1500 W, storing free solar energy in the buffer tank.
+          {%- else %}
+          ☀️ Solar Boost off — Hot water stays at normal setpoint.
+          {%- endif %}
+
+          {%- if is_state('switch.luxtronik_2_0_night_heating_pause', 'on') %}
+          🌙 **Night Heating Pause active** — Floor heating disabled overnight to keep the buffer tank warm for morning hot water.
+          {%- else %}
+          🌙 Night Heating Pause off — Floor heating runs continuously.
+          {%- endif %}
+
+      # --- Info ---
+      - type: markdown
+        title: "ℹ️ Operating Mode Reference"
+        content: |
+          | Mode | Description |
+          |------|-------------|
+          | **Heating** | Heating active — floor heating is running |
+          | **Hot Water** | Hot water preparation active |
+          | **Evu** | ⚠️ **Grid Lockout** — utility provider locks out the compressor via ripple control receiver (contact open). Heat pump must not run until the grid operator closes the contact. |
+          | **Defrost** | Defrost cycle running |
+          | **No Request** | No demand — heat pump idle |
+          | **Cooling** | Cooling active (if configured) |
+
+          ---
+          **SG-Ready Modes:**
+          | Mode | Description |
+          |------|-------------|
+          | Off (Mode 0) | SG-Ready disabled |
+          | Blocking (Mode 1) | ⚠️ Lockout — heat pump blocked |
+          | Standard (Mode 2) | Normal operation |
+          | Boost (Mode 3) | Recommended start — use PV surplus |

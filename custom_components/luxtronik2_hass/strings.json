@@ -75,7 +75,7 @@
       },
       "dashboard_info": {
         "title": "Dashboard Setup",
-        "description": "A ready-to-use dashboard is included with this integration. It shows all heat pump data at a glance: operating status, temperatures, pump states, operating hours, setpoints, and controls.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Waermepumpe') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from the link below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**Dashboard YAML:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
+        "description": "Ready-to-use dashboards are included in two languages. Pick the one matching your HA language.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Heat Pump') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from one of the links below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**English Dashboard:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml\n\n**German Dashboard (Deutsch):** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
       }
     },
     "error": {

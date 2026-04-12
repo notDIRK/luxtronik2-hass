@@ -97,20 +97,16 @@ Ein fertiges Dashboard-YAML ist in diesem Repository enthalten. So richtest du e
 5. In Zeile 11 `your-heatpump-ip` durch die tatsächliche IP-Adresse deiner Wärmepumpe ersetzen
 6. **Speichern** klicken, dann **Fertig**
 
-Das Dashboard zeigt Betriebsstatus, Temperaturen, Pumpenzustände, Betriebsstunden, Sollwerte und Steuerung — alles mit den stabilen `luxtronik_2_0_*` Entity-IDs.
+Das Dashboard zeigt Betriebsstatus, Temperaturen, Pumpenzustaende, Betriebsstunden, Sollwerte, Smart Energy Steuerung und einen 24-Stunden-Netz-Verlaufsgraphen — alles mit den stabilen `luxtronik_2_0_*` Entity-IDs.
 
-<details>
-<summary>Klicken um das Dashboard-YAML anzuzeigen</summary>
+**Zwei Dashboard-Sprachen verfuegbar:**
 
-```yaml
-# Kopiere dies in den Rohen Konfigurationseditor deines Dashboards.
-# Ersetze "your-heatpump-ip" durch die IP-Adresse deiner Wärmepumpe.
-# Vollständige Datei: docs/examples/dashboard-waermepumpe.yaml
-```
+| Sprache | Datei | Beschreibung |
+|---------|-------|-------------|
+| **Deutsch** | [dashboard-waermepumpe.yaml](docs/examples/dashboard-waermepumpe.yaml) | Alle Beschriftungen auf Deutsch |
+| **English** | [dashboard-heatpump-en.yaml](docs/examples/dashboard-heatpump-en.yaml) | All labels and descriptions in English |
 
-Siehe die vollständige YAML-Datei: [dashboard-waermepumpe.yaml](docs/examples/dashboard-waermepumpe.yaml)
-
-</details>
+Waehle das Dashboard passend zu deiner Home Assistant Spracheinstellung.
 
 ---
 
