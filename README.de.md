@@ -112,6 +112,50 @@ Siehe die vollständige YAML-Datei: [dashboard-waermepumpe.yaml](docs/examples/d
 
 </details>
 
+---
+
+## Smart Energy
+
+Zwei optionale Automatisierungsfunktionen fuer Waermepumpen mit **Mehrschichtspeicher und Warmwasser-Durchlauferhitzer**. Beide koennen unabhaengig aktiviert werden ueber **Einstellungen → Geraete & Dienste → Luxtronik 2.0 → Konfigurieren**.
+
+### Solar Boost
+
+Erhoeht automatisch die Warmwasser-Solltemperatur wenn die Solaranlage ueberschuessigen Strom ins Netz einspeist — kostenlose Solarenergie wird im Speicher gespeichert statt sie zu verkaufen.
+
+- **Ausloeser:** Netzeinspeisung uebersteigt konfigurierbaren Schwellwert (Standard: 1500 W)
+- **Aktion:** Warmwasser-Soll wird von Normal (Standard: 55,5 °C) auf Boost-Temperatur angehoben (Standard: 65,0 °C)
+- **Mindestlaufzeit:** Einmal aktiviert, bleibt der Boost fuer eine konfigurierbare Dauer aktiv (Standard: 30 Min.) um schnelles Ein/Aus bei Wolkendurchzug zu vermeiden
+- **Netz-Sensor Konvention:** Positive Werte = Netzbezug (Verbrauch), negative Werte = Einspeisung (Verkauf). Beispiel: `sensor.grid_total = -2000` bedeutet 2000 W Einspeisung
+
+**Dashboard-Visualisierung:**
+
+| Symbol | Bedeutung |
+|--------|-----------|
+| 🔌 **Netzbezug: 1078 W** | Strom aus dem Netz (positiver Wert) |
+| ☀️ **Einspeisung: 2000 W** | Strom ins Netz (negativer Wert) |
+| 🟢 Boost-Bedingung erfuellt | Einspeisung > Schwellwert |
+| 🟡 Unter Schwellwert | Einspeisung vorhanden aber unter Schwellwert |
+| 🔴 Kein Solarueberschuss | Netzbezug |
+
+### Nacht-Heizungspause
+
+Schaltet die Fussbodenheizung nachts automatisch ab, damit der Heizkreis den Speicher nicht ueber Nacht abkuehlt. So bleibt genuegend Warmwasser fuer den Morgen erhalten — entscheidend bei Systemen wo Fussbodenheizung und Warmwasser denselben Speicher teilen.
+
+- **Standard-Zeitfenster:** 18:00 – 09:00 (konfigurierbar)
+- **Aktion:** Heizmodus wird waehrend des Zeitfensters auf „Aus" gesetzt, ausserhalb auf „Automatik" zurueckgestellt
+- **Warum:** Bei einem Mehrschichtspeicher mit Warmwasser-Durchlauferhitzer kann die Fussbodenheizung den Speicher ueber Nacht entleeren — morgens steht dann kein Warmwasser mehr zur Verfuegung
+
+### Konfiguration
+
+Beide Funktionen werden im Options-Flow der Integration konfiguriert:
+
+1. **Einstellungen → Geraete & Dienste → Luxtronik 2.0 → Konfigurieren**
+2. **Solar Boost** oder **Nacht-Heizungspause** aus dem Menue waehlen
+3. Funktion aktivieren und Schwellwerte/Zeiten anpassen
+4. Das Dashboard zeigt Toggle-Schalter, Netz-Status und einen 24-Stunden-Verlaufsgraphen
+
+Alle Einstellungen koennen auch zur Laufzeit ueber die Switch-Entities geaendert werden (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_nacht_heizungspause`).
+
 ## Voraussetzungen
 
 - Home Assistant **2024.1** oder neuer

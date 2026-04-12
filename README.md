@@ -115,6 +115,50 @@ See the full YAML file: [dashboard-waermepumpe.yaml](docs/examples/dashboard-wae
 
 </details>
 
+---
+
+## Smart Energy
+
+Two optional automation features for heat pumps with **multi-layer buffer tanks and DHW (domestic hot water) heat exchangers**. Both can be enabled independently via **Settings → Devices & Services → Luxtronik 2.0 → Configure**.
+
+### Solar Boost
+
+Automatically raises the hot water setpoint when your solar system feeds surplus power into the grid — storing free solar energy in the buffer tank instead of exporting it.
+
+- **Trigger:** Grid feed-in exceeds a configurable threshold (default: 1500 W)
+- **Action:** Hot water setpoint raised from normal (default: 55.5 °C) to boost temperature (default: 65.0 °C)
+- **Minimum runtime:** Once activated, boost stays active for a configurable duration (default: 30 min) to prevent rapid cycling during cloud cover
+- **Grid sensor convention:** Positive values = consumption (buying), negative values = feed-in (selling). Example: `sensor.grid_total = -2000` means 2000 W feed-in
+
+**Dashboard visualization:**
+
+| Symbol | Meaning |
+|--------|---------|
+| 🔌 **Netzbezug: 1078 W** | Consuming from grid (positive value) |
+| ☀️ **Einspeisung: 2000 W** | Feeding into grid (negative value) |
+| 🟢 Boost condition met | Feed-in > threshold |
+| 🟡 Below threshold | Feed-in present but below threshold |
+| 🔴 No solar surplus | Consuming from grid |
+
+### Night Heating Pause
+
+Automatically disables floor heating during night hours to prevent the heating circuit from cooling down the buffer tank overnight. This preserves hot water for the morning — critical for systems where the floor heating and DHW share the same buffer.
+
+- **Default window:** 18:00 – 09:00 (configurable)
+- **Action:** Heating mode set to "Off" during the window, restored to "Automatic" outside
+- **Why:** In a multi-layer buffer tank with DHW heat exchanger, the floor heating loop can drain heat from the buffer overnight, leaving no hot water in the morning
+
+### Configuration
+
+Both features are configured in the integration's options flow:
+
+1. **Settings → Devices & Services → Luxtronik 2.0 → Configure**
+2. Select **Solar Boost** or **Night Heating Pause** from the menu
+3. Enable the feature and adjust thresholds/times
+4. The dashboard shows toggle switches, grid status, and a 24-hour history graph
+
+All settings can also be changed at runtime via the switch entities (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_night_heating_pause`).
+
 ## Requirements
 
 - Home Assistant **2024.1** or newer
