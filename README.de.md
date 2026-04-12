@@ -7,7 +7,9 @@ Modbus, Port 8889, Binärprotokoll,
 Temperatursensor, Heizungssteuerung, Warmwasser, Brauchwasser,
 Fußbodenheizung, Fussbodenheizung, Mehrschichtspeicher, Durchlauferhitzer,
 Netzeinspeisung, Photovoltaik, PV Überschuss, evcc,
-Nacht-Heizungspause, Parameter-Sicherung, Parameter-Backup
+Nacht-Heizungspause, Badebooster, Bath Boost, heisses Bad, Warmwasser-Boost,
+Warmwasser auf Knopfdruck, on-demand hot water,
+Parameter-Sicherung, Parameter-Backup
 -->
 
 <p align="center">
@@ -77,6 +79,8 @@ Dieser Pfad ist **noch nicht verfügbar**. Den Fortschritt kannst du in den Repo
 
 - **Lese‑Sensoren**: Vor‑/Rücklauftemperatur, Außentemperatur, Warmwassertemperatur, Betriebsstunden, Stromverbrauch, Fehlerzustände, SG‑Ready‑Status
 - **Steuer‑Entities**: Heizmodus, Warmwassermodus, SG‑Ready‑Modus, Temperatur‑Sollwerte
+- **[Badebooster (Bath Boost)](#badebooster-bath-boost)**: Warmwasser auf Knopfdruck mit Fortschrittsanzeige — [Details unten](#badebooster-bath-boost)
+- **[Smart Energy](#smart-energy)**: Solar Boost + Nacht-Heizungspause — [Details unten](#smart-energy)
 - **Schreibratenbegrenzung** zum Schutz der Steuerung vor Befehlsfluten
 - **Single‑Connection‑sicher**: respektiert die One‑TCP‑Connection‑Beschränkung von Luxtronik 2.0 über Connect‑per‑Call + asyncio‑Lock
 - **Englische und deutsche Übersetzungen** eingebaut
@@ -105,8 +109,48 @@ Das Dashboard zeigt Betriebsstatus, Temperaturen, Pumpenzustaende, Betriebsstund
 |---------|-------|-------------|
 | **Deutsch** | [dashboard-waermepumpe.yaml](docs/examples/dashboard-waermepumpe.yaml) | Alle Beschriftungen auf Deutsch |
 | **English** | [dashboard-heatpump-en.yaml](docs/examples/dashboard-heatpump-en.yaml) | All labels and descriptions in English |
+| **Badebooster** | [dashboard-bath-boost.yaml](docs/examples/dashboard-bath-boost.yaml) | Einzelne Kachel mit Fortschrittsanzeige (zu jedem Dashboard hinzufuegbar) |
 
 Waehle das Dashboard passend zu deiner Home Assistant Spracheinstellung.
+
+---
+
+## Badebooster (Bath Boost)
+
+**Ein Knopf fuer ein heisses Bad.** Druecke den Badebooster-Button und die Waermepumpe heizt sofort den Warmwasserspeicher auf eine hoehere Zieltemperatur auf. Sobald die Temperatur erreicht ist, wird alles automatisch auf Normal zurueckgestellt.
+
+**Schnellstart:**
+1. Finde den **Badebooster**-Button auf der Geraeteseite (Geraete & Dienste > Luxtronik 2.0 > Geraet)
+2. Druecke ihn — fertig. Die Waermepumpe heizt sofort auf.
+3. Verfolge den Fortschritt im **Badebooster Status**-Sensor
+
+**So funktioniert es:**
+
+| Schritt | Was passiert |
+|---------|-------------|
+| Button gedrueckt | Warmwassermodus wechselt auf „Party" (erzwingt sofortiges Aufheizen), Solltemperatur wird auf Zielwert angehoben |
+| Aufheizen laeuft | Status-Sensor zeigt „Aktiv" mit aktueller Temperatur, Fortschritt in % und geschaetzter Restzeit |
+| Ziel erreicht | Modus wechselt automatisch zurueck auf „Automatik", Solltemperatur wird auf Normal zurueckgestellt |
+
+**Standardtemperaturen:**
+
+| Einstellung | Standard | Bereich | Wo aendern |
+|-------------|----------|---------|------------|
+| Zieltemperatur | 65,0 °C | 40–70 °C | Einstellungen > Luxtronik 2.0 > Konfigurieren > Badebooster |
+| Normaltemperatur | 55,5 °C | 30–65 °C | Einstellungen > Luxtronik 2.0 > Konfigurieren > Badebooster |
+
+**Erzeugte Entities:**
+
+| Entity | Typ | Beschreibung |
+|--------|-----|-------------|
+| `button.luxtronik_2_0_badebooster` | Button | Druecken zum Starten |
+| `sensor.luxtronik_2_0_badebooster_status` | Sensor | Zeigt „Aktiv" oder „Bereit" mit Fortschritts-Attributen |
+
+Der Status-Sensor liefert waehrend des Boosts diese Attribute: `current_temperature`, `target_temperature`, `progress_percent`, `estimated_remaining_minutes`, `activated_at`.
+
+**Dashboard-Kachel:** Eine fertige Dashboard-Kachel liegt unter [`docs/examples/dashboard-bath-boost.yaml`](docs/examples/dashboard-bath-boost.yaml). Siehe [Dashboard einrichten](#dashboard-einrichten) fuer das Hinzufuegen von Kacheln.
+
+> **Hinweis:** Der Badebooster hat Vorrang vor Solar Boost. Wenn Solar Boost aktiv ist und du den Badebooster drueckst, gewinnt deine manuelle Anfrage.
 
 ---
 
@@ -143,14 +187,14 @@ Schaltet die Fussbodenheizung nachts automatisch ab, damit der Heizkreis den Spe
 
 ### Konfiguration
 
-Beide Funktionen werden im Options-Flow der Integration konfiguriert:
+Alle Funktionen werden im Options-Flow der Integration konfiguriert:
 
 1. **Einstellungen → Geraete & Dienste → Luxtronik 2.0 → Konfigurieren**
-2. **Solar Boost** oder **Nacht-Heizungspause** aus dem Menue waehlen
-3. Funktion aktivieren und Schwellwerte/Zeiten anpassen
+2. **Solar Boost**, **Nacht-Heizungspause** oder **Badebooster** aus dem Menue waehlen
+3. Funktion aktivieren und Schwellwerte/Temperaturen/Zeiten anpassen
 4. Das Dashboard zeigt Toggle-Schalter, Netz-Status und einen 24-Stunden-Verlaufsgraphen
 
-Alle Einstellungen koennen auch zur Laufzeit ueber die Switch-Entities geaendert werden (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_nacht_heizungspause`).
+Smart-Energy-Schalter koennen auch zur Laufzeit ueber die Switch-Entities umgeschaltet werden (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_nacht_heizungspause`).
 
 ## Voraussetzungen
 

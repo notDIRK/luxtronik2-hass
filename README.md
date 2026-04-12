@@ -9,6 +9,8 @@ floor heating, fussbodenheizung, fußbodenheizung,
 multi-layer buffer tank, mehrschichtspeicher, durchlauferhitzer,
 solar surplus, solarüberschuss, netzeinspeisung, grid feed-in,
 night heating pause, nacht heizungspause,
+bath boost, badebooster, hot bath, heisses bad, warmwasser boost,
+on-demand hot water, warmwasser auf knopfdruck,
 parameter backup, parameter sicherung,
 evcc, photovoltaik, pv überschuss
 -->
@@ -80,6 +82,8 @@ This path is **not yet available**. Track progress in the repository milestones.
 
 - **Read-only sensors**: flow/return temperatures, outside temperature, hot water temperature, operating hours, power consumption, error states, SG-Ready status
 - **Control entities**: heating mode, hot water mode, SG-Ready mode, temperature setpoints
+- **[Bath Boost (Badebooster)](#bath-boost-badebooster)**: on-demand hot water heating with progress tracking — [details below](#bath-boost-badebooster)
+- **[Smart Energy](#smart-energy)**: Solar Boost + Night Heating Pause — [details below](#smart-energy)
 - **Write rate limiting** to protect the controller from command floods
 - **Single-connection safe**: respects the Luxtronik 2.0 one-TCP-connection constraint via connect-per-call + asyncio lock
 - **English + German translations** built in
@@ -108,8 +112,48 @@ The dashboard shows operating status, temperatures, pump states, operating hours
 |----------|------|-------------|
 | **English** | [dashboard-heatpump-en.yaml](docs/examples/dashboard-heatpump-en.yaml) | All labels and descriptions in English |
 | **Deutsch** | [dashboard-waermepumpe.yaml](docs/examples/dashboard-waermepumpe.yaml) | Alle Beschriftungen auf Deutsch |
+| **Bath Boost** | [dashboard-bath-boost.yaml](docs/examples/dashboard-bath-boost.yaml) | Standalone card with progress display (add to any dashboard) |
 
 Pick the one matching your Home Assistant language setting.
+
+---
+
+## Bath Boost (Badebooster)
+
+**One button for a hot bath.** Press the Bath Boost button and the heat pump immediately starts heating your hot water tank to a higher target temperature. Once reached, everything returns to normal automatically.
+
+**Quick start:**
+1. Find the **Badebooster** button on your device page (Devices & Services > Luxtronik 2.0 > device)
+2. Press it — done. The heat pump starts heating immediately.
+3. Watch progress in the **Badebooster Status** sensor
+
+**How it works:**
+
+| Step | What happens |
+|------|-------------|
+| You press the button | Hot water mode switches to "Party" (forces immediate heating) and setpoint is raised to target temperature |
+| Heating in progress | Status sensor shows "Active" with current temperature, progress %, and estimated remaining time |
+| Target reached | Mode automatically returns to "Automatic", setpoint restored to normal |
+
+**Default temperatures:**
+
+| Setting | Default | Range | Where to change |
+|---------|---------|-------|-----------------|
+| Target temperature | 65.0 °C | 40–70 °C | Settings > Luxtronik 2.0 > Configure > Bath Boost |
+| Normal temperature | 55.5 °C | 30–65 °C | Settings > Luxtronik 2.0 > Configure > Bath Boost |
+
+**Entities created:**
+
+| Entity | Type | Description |
+|--------|------|-------------|
+| `button.luxtronik_2_0_badebooster` | Button | Press to start heating |
+| `sensor.luxtronik_2_0_badebooster_status` | Sensor | Shows "Active" or "Idle" with progress attributes |
+
+The status sensor provides these attributes while active: `current_temperature`, `target_temperature`, `progress_percent`, `estimated_remaining_minutes`, `activated_at`.
+
+**Dashboard card:** A ready-to-use dashboard card is included at [`docs/examples/dashboard-bath-boost.yaml`](docs/examples/dashboard-bath-boost.yaml). See the [Dashboard Setup](#dashboard-setup) section for how to add cards.
+
+> **Note:** Bath Boost takes priority over Solar Boost. If Solar Boost is active when you press Bath Boost, your manual request wins.
 
 ---
 
@@ -146,14 +190,14 @@ Automatically disables floor heating during night hours to prevent the heating c
 
 ### Configuration
 
-Both features are configured in the integration's options flow:
+All features are configured in the integration's options flow:
 
 1. **Settings → Devices & Services → Luxtronik 2.0 → Configure**
-2. Select **Solar Boost** or **Night Heating Pause** from the menu
-3. Enable the feature and adjust thresholds/times
+2. Select **Solar Boost**, **Night Heating Pause**, or **Bath Boost** from the menu
+3. Enable the feature and adjust thresholds/temperatures/times
 4. The dashboard shows toggle switches, grid status, and a 24-hour history graph
 
-All settings can also be changed at runtime via the switch entities (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_night_heating_pause`).
+Smart Energy switches can also be toggled at runtime via the switch entities (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_night_heating_pause`).
 
 ## Requirements
 
