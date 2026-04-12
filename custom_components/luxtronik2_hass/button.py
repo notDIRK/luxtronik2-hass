@@ -132,10 +132,14 @@ class LuxtronikBackupButton(ButtonEntity):
                     self._host,
                     err,
                 )
-                self.hass.components.persistent_notification.async_create(
-                    message=f"Backup failed: {err}",
-                    title="Luxtronik Parameter Backup Failed",
-                    notification_id=f"{DOMAIN}_backup_error",
+                await self.hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": f"Backup failed: {err}",
+                        "title": "Luxtronik Parameter Backup Failed",
+                        "notification_id": f"{DOMAIN}_backup_error",
+                    },
                 )
                 return
 
@@ -155,13 +159,17 @@ class LuxtronikBackupButton(ButtonEntity):
         )
 
         # Inform the user via a persistent notification in the HA UI.
-        self.hass.components.persistent_notification.async_create(
-            message=(
-                f"Backed up {count} parameters to `{filename}`\n"
-                f"Timestamp: {timestamp}"
-            ),
-            title="Luxtronik Parameter Backup Complete",
-            notification_id=f"{DOMAIN}_backup",
+        await self.hass.services.async_call(
+            "persistent_notification",
+            "create",
+            {
+                "message": (
+                    f"Backed up {count} parameters to `{filename}`\n"
+                    f"Timestamp: {timestamp}"
+                ),
+                "title": "Luxtronik Parameter Backup Complete",
+                "notification_id": f"{DOMAIN}_backup",
+            },
         )
         _LOGGER.info(
             "Luxtronik parameter backup complete: %d parameters -> %s",
