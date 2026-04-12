@@ -299,7 +299,7 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     ),
                 },
             )
-            return self.async_create_entry(title="", data={})
+            return await self.async_step_dashboard_info()
 
         return self.async_show_form(
             step_id="smart_energy",
@@ -357,4 +357,21 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     ): str,
                 }
             ),
+        )
+
+    async def async_step_dashboard_info(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Show dashboard setup information.
+
+        This is a read-only info step — submitting the form (clicking Next)
+        finishes the options flow. The description contains step-by-step
+        instructions for creating the example dashboard.
+        """
+        if user_input is not None:
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="dashboard_info",
+            data_schema=vol.Schema({}),
         )

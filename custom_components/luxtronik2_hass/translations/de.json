@@ -57,6 +57,10 @@
           "night_pause_start": "Uhrzeit ab der die Fussbodenheizung abgeschaltet wird (Standard: 18:00)",
           "night_pause_end": "Uhrzeit ab der die Fussbodenheizung wieder auf Automatik gestellt wird (Standard: 09:00)"
         }
+      },
+      "dashboard_info": {
+        "title": "Dashboard einrichten",
+        "description": "Ein fertiges Dashboard ist fuer diese Integration verfuegbar.\n\n**So richten Sie es ein:**\n1. Gehen Sie zu **Einstellungen → Dashboards → Dashboard hinzufuegen**\n2. Name vergeben (z.B. 'Waermepumpe') und Icon waehlen (mdi:heat-pump)\n3. Neues Dashboard oeffnen → **⋮** → **Dashboard bearbeiten** → **⋮** → **Roher Konfigurationseditor**\n4. Das YAML aus der Repository-Datei `docs/examples/dashboard-waermepumpe.yaml` hineinkopieren\n5. `your-heatpump-ip` durch die tatsaechliche IP-Adresse Ihrer Waermepumpe ersetzen\n6. **Speichern** klicken, dann **Fertig**\n\n**Dashboard-YAML:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml\n\nDas Dashboard zeigt Betriebsstatus, Temperaturen, Pumpenzustaende, Betriebsstunden, Sollwerte und Steuerung."
       }
     },
     "error": {

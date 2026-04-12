@@ -57,6 +57,10 @@
           "night_pause_start": "Time when floor heating is turned off (default: 18:00)",
           "night_pause_end": "Time when floor heating is restored to auto (default: 09:00)"
         }
+      },
+      "dashboard_info": {
+        "title": "Dashboard Setup",
+        "description": "A ready-to-use dashboard is available for this integration.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Waermepumpe') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from the repository file `docs/examples/dashboard-waermepumpe.yaml`\n5. Replace `your-heatpump-ip` with your actual heat pump IP\n6. Click **Save**, then **Done**\n\n**Dashboard YAML:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml\n\nThe dashboard shows operating status, temperatures, pump states, operating hours, setpoints, and controls."
       }
     },
     "error": {
