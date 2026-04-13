@@ -161,17 +161,31 @@ views:
             name: "Gesamt (seit Inbetriebnahme)"
             icon: "mdi:sigma"
 
-      # --- Sollwerte / Grenzwerte ---
-      - type: entities
-        title: "🎯 Sollwerte & Grenzwerte"
-        show_header_toggle: false
-        entities:
-          - entity: number.luxtronik_2_0_warmwasser_solltemperatur
-            name: "Warmwasser Soll"
-            icon: "mdi:target"
-          - entity: number.luxtronik_2_0_heizkurven_verschiebung
-            name: "Heizkurve Parallelverschiebung"
-            icon: "mdi:chart-bell-curve-cumulative"
+      # --- Sollwerte & Grenzwerte ---
+      # WW-Hysterese (param 74) wird live vom Regler gelesen.
+      # Die Markdown-Karte darunter berechnet die effektive Starttemperatur.
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: "🎯 Sollwerte & Grenzwerte"
+            show_header_toggle: false
+            entities:
+              - entity: number.luxtronik_2_0_warmwasser_solltemperatur
+                name: "Warmwasser Soll"
+                icon: "mdi:target"
+              - entity: sensor.luxtronik_2_0_luxtronik_ww_hysteresis
+                name: "WW-Hysterese (vom Regler)"
+                icon: "mdi:thermometer-alert"
+              - entity: number.luxtronik_2_0_heizkurven_verschiebung
+                name: "Heizkurve Parallelverschiebung"
+                icon: "mdi:chart-bell-curve-cumulative"
+          - type: markdown
+            content: >
+              ℹ️ **WW-Aufheizung startet bei
+              {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5)
+              - states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') | float(5.0)) | round(1) }} °C**
+              (Soll {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C
+              − Hysterese {{ states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') | float(5.0) }} K)
 
       # --- Sicherung ---
       - type: entities
@@ -184,21 +198,6 @@ views:
           - entity: sensor.luxtronik_2_0_luxtronik_last_backup
             name: "Letzte Sicherung"
             icon: "mdi:backup-restore"
-
-      # --- Warmwasser-Hysterese Info ---
-      # Shows the effective start temperature using the live hysteresis value from the controller.
-      # sensor.luxtronik_2_0_luxtronik_ww_hysteresis reads param 74 (ID_Einst_BWS_Hyst_akt).
-      - type: markdown
-        content: >
-          **WW-Hysterese: Aufheizung startet bei
-          {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5)
-          - states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') | float(5.0)) | round(1) }} °C**
-
-          Solltemperatur: {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C |
-          Hysterese: {{ states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') }} K (vom Regler)
-
-          *Die Aufheizung startet erst wenn die WW-Temperatur um den Hysteresewert
-          unter die Solltemperatur sinkt.*
 
       # --- Smart Energy ---
       # Note: Entity names depend on your HA language setting.

@@ -181,7 +181,7 @@ This matters for Solar Boost because:
 - Solar Boost raises the setpoint (e.g. to 65 °C), but the heat pump will not actually start heating until the tank drops to 60 °C (with 5 K hysteresis)
 - If your tank is already at 58 °C, Solar Boost will raise the setpoint but no heating occurs — the surplus solar energy is still exported to the grid
 
-**Configuration:** Enter your controller's WW hysteresis value in **Settings > Devices & Services > Luxtronik 2.0 > Configure > Solar Boost**. The dashboard will then display the effective start temperature. You can find the hysteresis value on your controller display under *Parameters > Hot Water > Hysteresis*.
+**Automatic:** The integration reads the WW hysteresis value directly from the controller (parameter 74, `ID_Einst_BWS_Hyst_akt`) — no manual configuration needed. The sensor `sensor.luxtronik_2_0_luxtronik_ww_hysteresis` updates every poll cycle (default: 30s). The dashboard calculates and displays the effective start temperature automatically.
 
 **Dashboard visualization:**
 

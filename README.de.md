@@ -178,7 +178,7 @@ Das ist fuer Solar Boost wichtig, weil:
 - Solar Boost erhoeht die Solltemperatur (z.B. auf 65 °C), aber die Waermepumpe startet erst bei 60 °C (bei 5 K Hysterese)
 - Wenn der Speicher bereits 58 °C hat, wird die Solltemperatur erhoeht, aber keine Aufheizung gestartet — der Solarueberschuss wird weiter ins Netz eingespeist
 
-**Konfiguration:** Tragen Sie den WW-Hysteresewert Ihres Reglers ein unter **Einstellungen > Geraete & Dienste > Luxtronik 2.0 > Konfigurieren > Solar Boost**. Das Dashboard zeigt dann die effektive Starttemperatur an. Den Hysteresewert finden Sie am Regler-Display unter *Parameter > Warmwasser > Hysterese*.
+**Automatisch:** Die Integration liest den WW-Hysteresewert direkt aus dem Regler (Parameter 74, `ID_Einst_BWS_Hyst_akt`) — keine manuelle Konfiguration noetig. Der Sensor `sensor.luxtronik_2_0_luxtronik_ww_hysteresis` wird bei jedem Abfragezyklus aktualisiert (Standard: 30s). Das Dashboard berechnet und zeigt die effektive Starttemperatur automatisch an.
 
 **Dashboard-Visualisierung:**
 
