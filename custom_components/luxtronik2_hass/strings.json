@@ -34,32 +34,32 @@
         "description": "Configure how the integration connects to your Luxtronik 2.0 controller.",
         "data": {
           "host": "IP Address",
-          "poll_interval": "Poll Interval (seconds)"
+          "poll_interval": "Poll Interval (seconds)",
+          "ww_hysteresis": "WW Hysteresis (K)"
         },
         "data_description": {
           "host": "Local IP address of the Luxtronik 2.0 controller (e.g. 192.168.1.100)",
-          "poll_interval": "How often to read data from the heat pump (10–300 seconds, default: 30)"
+          "poll_interval": "How often to read data from the heat pump (10–300 seconds, default: 30)",
+          "ww_hysteresis": "The hot water hysteresis set on your Luxtronik controller (in Kelvin). With a setpoint of 55.5 °C and hysteresis of 5 K, the controller only starts heating when the temperature drops to 50.5 °C. This value is displayed on the dashboard. Check your controller under Parameters > Hot Water > Hysteresis. Default: 5 K."
         }
       },
       "solar_boost": {
         "title": "Solar Boost",
-        "description": "**What it does:** When your solar system feeds more than a configurable amount of power into the grid, the hot water setpoint is automatically raised to store the surplus energy in your buffer tank. Once the feed-in drops, the setpoint returns to normal after a minimum runtime.\n\n**Designed for:** Heat pumps with multi-layer buffer tanks and domestic hot water (DHW) heat exchangers. The idea is to use free solar energy to heat your hot water storage instead of exporting it to the grid.\n\n**How to use:** Enter the entity ID of your grid power sensor. Convention: positive = consumption, negative = feed-in. Leave the sensor field empty to disable this feature entirely.\n\n**Important:** Your Luxtronik controller has a WW hysteresis setting (typically 5 K). This means heating only starts when the hot water temperature drops below the setpoint by the hysteresis amount. For example: setpoint 55.5 °C with 5 K hysteresis = heating starts at 50.5 °C. Configure the hysteresis value below so the dashboard can display the effective start temperature.",
+        "description": "**What it does:** When your solar system feeds more than a configurable amount of power into the grid, the hot water setpoint is automatically raised to store the surplus energy in your buffer tank. Once the feed-in drops, the setpoint returns to normal after a minimum runtime.\n\n**Designed for:** Heat pumps with multi-layer buffer tanks and domestic hot water (DHW) heat exchangers. The idea is to use free solar energy to heat your hot water storage instead of exporting it to the grid.\n\n**How to use:** Enter the entity ID of your grid power sensor. Convention: positive = consumption, negative = feed-in. Leave the sensor field empty to disable this feature entirely.",
         "data": {
           "solar_boost_enabled": "Enable Solar Boost",
           "grid_sensor": "Grid Power Sensor",
           "solar_threshold": "Feed-in Threshold (Watts)",
           "solar_normal_temp": "Normal Hot Water Temperature (°C)",
           "solar_boost_temp": "Boosted Hot Water Temperature (°C)",
-          "solar_min_runtime": "Minimum Boost Duration (minutes)",
-          "ww_hysteresis": "WW Hysteresis (K)"
+          "solar_min_runtime": "Minimum Boost Duration (minutes)"
         },
         "data_description": {
           "grid_sensor": "Entity ID of your grid power sensor, e.g. sensor.grid_total. Convention: positive = consumption (buying from grid), negative = feed-in (selling to grid). Leave empty to disable Solar Boost.",
           "solar_threshold": "Solar Boost activates when grid feed-in exceeds this value. Example: 1500 means the heat pump only starts heating when you export more than 1500 W.",
           "solar_normal_temp": "The normal hot water setpoint used when Solar Boost is not active. This is the temperature your hot water tank is normally heated to.",
           "solar_boost_temp": "The raised hot water setpoint during Solar Boost. This should not exceed your controller's maximum allowed hot water temperature.",
-          "solar_min_runtime": "Once Solar Boost activates, it stays active for at least this many minutes — even if clouds reduce feed-in temporarily. This prevents the heat pump from cycling on/off rapidly.",
-          "ww_hysteresis": "The hot water hysteresis set on your Luxtronik controller (in Kelvin). With a setpoint of 55.5 °C and hysteresis of 5 K, the controller only starts heating when the temperature drops to 50.5 °C. This value is used to display the effective start temperature on the dashboard. Check your controller display under 'Parameters > Hot Water > Hysteresis'."
+          "solar_min_runtime": "Once Solar Boost activates, it stays active for at least this many minutes — even if clouds reduce feed-in temporarily. This prevents the heat pump from cycling on/off rapidly."
         }
       },
       "night_pause": {
