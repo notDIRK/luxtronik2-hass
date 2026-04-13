@@ -89,11 +89,7 @@
       },
       "dashboard_info": {
         "title": "Dashboard einrichten",
-        "description": "Fertige Dashboards sind in zwei Sprachen verfuegbar. Waehlen Sie das passende fuer Ihre HA-Sprache.\n\n**So richten Sie es ein:**\n1. Gehen Sie zu **Einstellungen → Dashboards → Dashboard hinzufuegen**\n2. Name vergeben (z.B. 'Waermepumpe') und Icon waehlen (mdi:heat-pump)\n3. Neues Dashboard oeffnen → **⋮** → **Dashboard bearbeiten** → **⋮** → **Roher Konfigurationseditor**\n4. Das YAML aus einem der Links unten kopieren und einfuegen\n5. `your-heatpump-ip` durch die IP-Adresse Ihrer Waermepumpe ersetzen\n6. **Speichern** klicken, dann **Fertig**\n\n**Deutsches Dashboard:** {dashboard_de_url}\n\n**English Dashboard:** {dashboard_en_url}",
-        "description_placeholders": {
-          "dashboard_de_url": "https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml",
-          "dashboard_en_url": "https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml"
-        }
+        "description": "Fertige Dashboards sind in zwei Sprachen verfuegbar (Deutsch und Englisch). Die YAML-Dateien finden Sie im Ordner docs/examples/ des GitHub-Repositorys.\n\n**So richten Sie es ein:**\n1. Gehen Sie zu **Einstellungen → Dashboards → Dashboard hinzufuegen**\n2. Name vergeben (z.B. 'Waermepumpe') und Icon waehlen (mdi:heat-pump)\n3. Neues Dashboard oeffnen → **⋮** → **Dashboard bearbeiten** → **⋮** → **Roher Konfigurationseditor**\n4. Das YAML aus der passenden Beispieldatei kopieren und einfuegen\n5. `your-heatpump-ip` durch die IP-Adresse Ihrer Waermepumpe ersetzen\n6. **Speichern** klicken, dann **Fertig**\n\n**Dateien:** `docs/examples/dashboard-waermepumpe.yaml` (Deutsch) · `docs/examples/dashboard-heatpump-en.yaml` (English)"
       }
     },
     "error": {
