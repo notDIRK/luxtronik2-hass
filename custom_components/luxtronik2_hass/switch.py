@@ -6,11 +6,15 @@ Provides toggle switches for independently enabling/disabling:
 
 Both features are designed for heat pumps with multi-layer buffer tanks and
 domestic hot water (DHW) heat exchangers. See smart_energy.py for the logic.
+
+Each switch exposes runtime status via extra_state_attributes so the user
+can see when Solar Boost last activated or how long Night Pause has been running.
 """
 
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -103,6 +107,59 @@ class LuxtronikSmartEnergySwitch(SwitchEntity, RestoreEntity):
         self.hass.config_entries.async_update_entry(self._entry, data=new_data)
         self.async_write_ha_state()
 
+    def _get_manager(self):
+        """Get the SmartEnergyManager from hass.data."""
+        return self.hass.data.get(DOMAIN, {}).get(
+            f"{self._entry.entry_id}_smart_energy"
+        )
+
+
+class LuxtronikSolarBoostSwitch(LuxtronikSmartEnergySwitch):
+    """Solar Boost switch with runtime status attributes.
+
+    Shows when boost last activated/deactivated and current debounce state.
+    """
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return Solar Boost runtime status."""
+        manager = self._get_manager()
+        if manager is None:
+            return {}
+        attrs = {
+            "boost_active": manager.boost_active,
+        }
+        if manager.boost_active and manager._boost_activated_at:
+            activated = manager._boost_activated_at
+            attrs["boost_activated_at"] = activated.isoformat()
+            elapsed = (datetime.now() - activated).total_seconds()
+            hours = int(elapsed // 3600)
+            minutes = int((elapsed % 3600) // 60)
+            if hours > 0:
+                attrs["boost_running_since"] = f"{hours}h {minutes}min"
+            else:
+                attrs["boost_running_since"] = f"{minutes}min"
+        return attrs
+
+
+class LuxtronikNightPauseSwitch(LuxtronikSmartEnergySwitch):
+    """Night Heating Pause switch with runtime status attributes.
+
+    Shows whether the pause is currently active and the configured time window.
+    """
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return Night Pause runtime status."""
+        manager = self._get_manager()
+        if manager is None:
+            return {}
+        attrs = {
+            "pause_active": manager.night_pause_currently_active,
+            "pause_window": f"{manager.night_pause_start} – {manager.night_pause_end}",
+        }
+        return attrs
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -117,10 +174,10 @@ async def async_setup_entry(
         async_add_entities: Callback to register entity objects with HA.
     """
     entities = [
-        LuxtronikSmartEnergySwitch(
+        LuxtronikSolarBoostSwitch(
             hass, entry, "solar_boost_enabled", DEFAULT_SOLAR_BOOST_ENABLED
         ),
-        LuxtronikSmartEnergySwitch(
+        LuxtronikNightPauseSwitch(
             hass, entry, "night_pause_enabled", DEFAULT_NIGHT_PAUSE_ENABLED
         ),
     ]
