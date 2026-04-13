@@ -329,6 +329,47 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         lux_index=65,
         value_fn=_lux_calcs.calculations[65].from_heatpump,
     ),
+    # Heat quantity meter (Wärmemengenzähler) — enabled by default.
+    # Luxtronik stores kWh * 10; from_heatpump() divides by 10 → kWh.
+    # calc[151]: WMZ Heizung (heat quantity for space heating)
+    LuxtronikSensorEntityDescription(
+        key="heat_quantity_heating",
+        name="Luxtronik Heat Quantity Heating",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement="kWh",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        icon="mdi:radiator",
+        data_source="calculations",
+        lux_index=151,
+        value_fn=_lux_calcs.calculations[151].from_heatpump,
+    ),
+    # calc[152]: WMZ Brauchwasser (heat quantity for domestic hot water)
+    LuxtronikSensorEntityDescription(
+        key="heat_quantity_hot_water",
+        name="Luxtronik Heat Quantity Hot Water",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement="kWh",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        icon="mdi:water-boiler",
+        data_source="calculations",
+        lux_index=152,
+        value_fn=_lux_calcs.calculations[152].from_heatpump,
+    ),
+    # calc[154]: WMZ Seit (total heat quantity since commissioning)
+    LuxtronikSensorEntityDescription(
+        key="heat_quantity_total",
+        name="Luxtronik Heat Quantity Total",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement="kWh",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        icon="mdi:counter",
+        data_source="calculations",
+        lux_index=154,
+        value_fn=_lux_calcs.calculations[154].from_heatpump,
+    ),
     # EVU lockout contact status — calc[31] (ID_WEB_EVUin).
     # Bool: False = contact open = LOCKED OUT, True = contact closed = FREE.
     # Dashboard uses this for conditional EVU-Sperre/EVU-Freigabe display.
@@ -388,7 +429,7 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
 # These 10 indices are already covered by CORE_SENSOR_DESCRIPTIONS above.
 # ---------------------------------------------------------------------------
 
-_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 31, 38, 39, 40, 43, 44, 46, 47, 56, 63, 64, 65, 80, 117, 119, 120, 257})
+_CORE_CALC_INDICES: frozenset[int] = frozenset({10, 11, 15, 17, 19, 20, 31, 38, 39, 40, 43, 44, 46, 47, 56, 63, 64, 65, 80, 117, 119, 120, 151, 152, 154, 257})
 
 
 def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:

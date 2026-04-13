@@ -144,6 +144,21 @@ views:
             name: "Hot Water"
             icon: "mdi:water-boiler"
 
+      # --- Heat Quantity Meter ---
+      - type: entities
+        title: "🔥 Heat Quantity Meter"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating
+            name: "Heating"
+            icon: "mdi:radiator"
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water
+            name: "Hot Water"
+            icon: "mdi:water-boiler"
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_total
+            name: "Total (since commissioning)"
+            icon: "mdi:counter"
+
       # --- Setpoints ---
       - type: entities
         title: "🎯 Setpoints"

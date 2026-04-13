@@ -146,6 +146,21 @@ views:
             name: "Warmwasser"
             icon: "mdi:water-boiler"
 
+      # --- Wärmemengenzähler ---
+      - type: entities
+        title: "🔥 Wärmemengenzähler"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating
+            name: "Heizung"
+            icon: "mdi:radiator"
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water
+            name: "Warmwasser"
+            icon: "mdi:water-boiler"
+          - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_total
+            name: "Gesamt (seit Inbetriebnahme)"
+            icon: "mdi:counter"
+
       # --- Sollwerte / Grenzwerte ---
       - type: entities
         title: "🎯 Sollwerte & Grenzwerte"
