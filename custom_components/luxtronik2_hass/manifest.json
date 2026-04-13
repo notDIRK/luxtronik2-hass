@@ -8,5 +8,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/notDIRK/luxtronik2-hass/issues",
   "requirements": ["luxtronik==0.3.14"],
-  "version": "1.2.2"
+  "version": "1.2.3"
 }
