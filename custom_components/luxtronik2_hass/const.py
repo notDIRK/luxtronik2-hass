@@ -33,6 +33,8 @@ DEFAULT_SOLAR_THRESHOLD = 1500      # watts — feed-in above this triggers boos
 DEFAULT_SOLAR_NORMAL_TEMP = 55.5    # °C — normal hot water setpoint
 DEFAULT_SOLAR_BOOST_TEMP = 65.0     # °C — boosted hot water setpoint
 DEFAULT_SOLAR_MIN_RUNTIME = 30      # minutes — minimum time boost stays active
+SOLAR_DEBOUNCE_SECONDS = 60         # Grid must stay below threshold for 60s before boost activates
+DEFAULT_WW_HYSTERESIS = 5.0         # Kelvin — controller hysteresis for hot water heating start
 
 # Night Heating Pause defaults
 DEFAULT_NIGHT_PAUSE_ENABLED = False

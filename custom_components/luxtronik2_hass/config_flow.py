@@ -41,6 +41,7 @@ from .const import (
     DEFAULT_SOLAR_MIN_RUNTIME,
     DEFAULT_SOLAR_NORMAL_TEMP,
     DEFAULT_SOLAR_THRESHOLD,
+    DEFAULT_WW_HYSTERESIS,
     DOMAIN,
 )
 
@@ -302,6 +303,9 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     "solar_min_runtime": user_input.get(
                         "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
                     ),
+                    "ww_hysteresis": user_input.get(
+                        "ww_hysteresis", DEFAULT_WW_HYSTERESIS
+                    ),
                 },
             )
             return self.async_create_entry(title="", data={})
@@ -342,6 +346,12 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                             "solar_min_runtime", DEFAULT_SOLAR_MIN_RUNTIME
                         ),
                     ): vol.All(int, vol.Range(min=5, max=120)),
+                    vol.Optional(
+                        "ww_hysteresis",
+                        default=float(data.get(
+                            "ww_hysteresis", DEFAULT_WW_HYSTERESIS
+                        )),
+                    ): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=15.0)),
                 }
             ),
         )

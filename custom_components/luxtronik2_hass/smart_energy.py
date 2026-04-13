@@ -41,6 +41,7 @@ from .const import (
     HEATING_MODE_OFF,
     PARAM_HEATING_MODE,
     PARAM_HOT_WATER_SETPOINT,
+    SOLAR_DEBOUNCE_SECONDS,
 )
 from .coordinator import LuxtronikCoordinator
 
@@ -79,6 +80,7 @@ class SmartEnergyManager:
         # Solar boost state
         self._boost_active = False
         self._boost_activated_at: datetime | None = None
+        self._debounce_start: datetime | None = None
 
         # Night pause state
         self._night_pause_active = False
@@ -241,8 +243,22 @@ class SmartEnergyManager:
         if grid_power < -self.solar_threshold:
             # Feed-in exceeds threshold — activate boost if not already active
             if not self._boost_active:
-                await self._activate_boost()
+                if self._debounce_start is None:
+                    self._debounce_start = now
+                    _LOGGER.debug("Solar boost debounce started")
+                else:
+                    elapsed = (now - self._debounce_start).total_seconds()
+                    if elapsed >= SOLAR_DEBOUNCE_SECONDS:
+                        self._debounce_start = None
+                        await self._activate_boost()
+                    else:
+                        _LOGGER.debug(
+                            "Solar boost debounce: %.0fs remaining",
+                            SOLAR_DEBOUNCE_SECONDS - elapsed,
+                        )
         else:
+            # Feed-in dropped below threshold — reset debounce timer
+            self._debounce_start = None
             # Below threshold (consuming or not enough feed-in) — deactivate only if min runtime elapsed
             if self._boost_active and self._boost_activated_at:
                 elapsed = (now - self._boost_activated_at).total_seconds() / 60

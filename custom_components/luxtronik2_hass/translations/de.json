@@ -43,21 +43,23 @@
       },
       "solar_boost": {
         "title": "Solar Boost",
-        "description": "**Was es tut:** Wenn Ihre Solaranlage mehr als einen einstellbaren Schwellwert ins Netz einspeist, wird die Warmwasser-Solltemperatur automatisch angehoben, um die ueberschuessige Energie im Speicher zu speichern. Sobald die Einspeisung sinkt, wird nach einer Mindestlaufzeit wieder auf die normale Temperatur zurueckgestellt.\n\n**Gedacht fuer:** Waermepumpen mit Mehrschichtspeicher und Warmwasser-Durchlauferhitzer. Die Idee: Kostenlose Solarenergie zum Aufheizen des Warmwasserspeichers nutzen, statt sie ins Netz einzuspeisen.\n\n**So nutzen Sie es:** Tragen Sie die Entity-ID Ihres Netz-Sensors ein. Konvention: positiv = Netzbezug, negativ = Einspeisung. Lassen Sie das Feld leer, um Solar Boost komplett zu deaktivieren.",
+        "description": "**Was es tut:** Wenn Ihre Solaranlage mehr als einen einstellbaren Schwellwert ins Netz einspeist, wird die Warmwasser-Solltemperatur automatisch angehoben, um die ueberschuessige Energie im Speicher zu speichern. Sobald die Einspeisung sinkt, wird nach einer Mindestlaufzeit wieder auf die normale Temperatur zurueckgestellt.\n\n**Gedacht fuer:** Waermepumpen mit Mehrschichtspeicher und Warmwasser-Durchlauferhitzer. Die Idee: Kostenlose Solarenergie zum Aufheizen des Warmwasserspeichers nutzen, statt sie ins Netz einzuspeisen.\n\n**So nutzen Sie es:** Tragen Sie die Entity-ID Ihres Netz-Sensors ein. Konvention: positiv = Netzbezug, negativ = Einspeisung. Lassen Sie das Feld leer, um Solar Boost komplett zu deaktivieren.\n\n**Wichtig:** Ihr Luxtronik-Regler hat eine WW-Hysterese-Einstellung (typisch 5 K). Das bedeutet, die Aufheizung startet erst wenn die Warmwassertemperatur um den Hysteresewert unter die Solltemperatur sinkt. Beispiel: Sollwert 55,5 °C bei 5 K Hysterese = Aufheizung startet bei 50,5 °C. Konfigurieren Sie den Hysteresewert unten, damit das Dashboard die effektive Starttemperatur anzeigen kann.",
         "data": {
           "solar_boost_enabled": "Solar Boost aktivieren",
           "grid_sensor": "Netz-Sensor",
           "solar_threshold": "Einspeise-Schwellwert (Watt)",
           "solar_normal_temp": "Normale Warmwasser-Temperatur (°C)",
           "solar_boost_temp": "Erhoehte Warmwasser-Temperatur (°C)",
-          "solar_min_runtime": "Mindest-Boost-Dauer (Minuten)"
+          "solar_min_runtime": "Mindest-Boost-Dauer (Minuten)",
+          "ww_hysteresis": "WW-Hysterese (K)"
         },
         "data_description": {
           "grid_sensor": "Entity-ID Ihres Netzleistungs-Sensors, z.B. sensor.grid_total. Konvention: positiv = Netzbezug (Verbrauch), negativ = Einspeisung (Verkauf). Leer lassen zum Deaktivieren.",
           "solar_threshold": "Solar Boost wird aktiviert wenn die Netzeinspeisung diesen Wert uebersteigt. Beispiel: 1500 bedeutet, dass die Waermepumpe erst aufheizt wenn Sie mehr als 1500 W einspeisen.",
           "solar_normal_temp": "Die normale Warmwasser-Solltemperatur wenn Solar Boost nicht aktiv ist. Das ist die Temperatur auf die Ihr Warmwasserspeicher normalerweise geheizt wird.",
           "solar_boost_temp": "Die erhoehte Warmwasser-Solltemperatur waehrend Solar Boost. Sollte die maximal erlaubte Warmwassertemperatur Ihres Reglers nicht ueberschreiten.",
-          "solar_min_runtime": "Sobald Solar Boost aktiviert ist, bleibt er mindestens so viele Minuten aktiv — auch wenn Wolken die Einspeisung voruebergehend reduzieren. Verhindert schnelles Ein/Aus der Waermepumpe."
+          "solar_min_runtime": "Sobald Solar Boost aktiviert ist, bleibt er mindestens so viele Minuten aktiv — auch wenn Wolken die Einspeisung voruebergehend reduzieren. Verhindert schnelles Ein/Aus der Waermepumpe.",
+          "ww_hysteresis": "Die Warmwasser-Hysterese Ihres Luxtronik-Reglers (in Kelvin). Bei einer Solltemperatur von 55,5 °C und 5 K Hysterese startet die Aufheizung erst wenn die Temperatur auf 50,5 °C sinkt. Dieser Wert wird im Dashboard zur Anzeige der effektiven Starttemperatur genutzt. Pruefen Sie die Einstellung im Regler-Display unter 'Parameter > Warmwasser > Hysterese'."
         }
       },
       "night_pause": {
