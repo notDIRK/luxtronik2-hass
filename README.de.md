@@ -41,7 +41,7 @@ Dieses Projekt unterstützt drei Integrationspfade mit klar unterschiedlichem Re
 
 - Installation als HACS *Custom Repository* mit `https://github.com/notDIRK/luxtronik2-hass`
 - Config‑Flow‑Oberfläche — nur die IP‑Adresse der Wärmepumpe eintragen, kein YAML
-- **31+ Entities** verfügbar: Temperaturen, Betriebsmodi, Leistung, Status, Sollwerte, SG‑Ready
+- **31+ Entities** verfügbar: Temperaturen, Betriebsmodi, Leistung, Status, Sollwerte, SG‑Ready, Wärmemengenzähler
 - Funktioniert mit Home Assistant **2024.1+** (getestet auf 2026.4.x)
 - Python 3.12+ Laufzeit (entspricht HA Core)
 - Spricht direkt mit der Wärmepumpe über die `luxtronik`-Bibliothek — keine zusätzlichen Dienste, keine Modbus‑Schicht
@@ -77,7 +77,7 @@ Dieser Pfad ist **noch nicht verfügbar**. Den Fortschritt kannst du in den Repo
 
 ## Funktionen (Pfad 1 — HACS‑Integration)
 
-- **Lese‑Sensoren**: Vor‑/Rücklauftemperatur, Außentemperatur, Warmwassertemperatur, Betriebsstunden, Stromverbrauch, Fehlerzustände, SG‑Ready‑Status
+- **Lese‑Sensoren**: Vor‑/Rücklauftemperatur, Außentemperatur, Warmwassertemperatur, Betriebsstunden, Wärmemengenzähler (Heizung, Warmwasser, Gesamt in kWh), Stromverbrauch, Fehlerzustände, SG‑Ready‑Status
 - **Steuer‑Entities**: Heizmodus, Warmwassermodus, SG‑Ready‑Modus, Temperatur‑Sollwerte
 - **[Badebooster (Bath Boost)](#badebooster-bath-boost)**: Warmwasser auf Knopfdruck mit Fortschrittsanzeige — [Details unten](#badebooster-bath-boost)
 - **[Smart Energy](#smart-energy)**: Solar Boost + Nacht-Heizungspause — [Details unten](#smart-energy)

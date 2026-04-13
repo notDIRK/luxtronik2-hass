@@ -44,7 +44,7 @@ This project supports three integration paths with clearly different maturity le
 
 - Install as a HACS *Custom Repository* pointing at `https://github.com/notDIRK/luxtronik2-hass`
 - Config flow UI — enter your heat pump's IP address, no YAML
-- **31+ entities** exposed: temperatures, operating modes, power, status, setpoints, SG-Ready
+- **31+ entities** exposed: temperatures, operating modes, power, status, setpoints, SG-Ready, heat quantity meters
 - Works with Home Assistant **2024.1+** (tested on 2026.4.x)
 - Python 3.12+ runtime (matches HA Core)
 - Talks directly to the heat pump via the `luxtronik` library — no extra services, no Modbus layer
@@ -80,7 +80,7 @@ This path is **not yet available**. Track progress in the repository milestones.
 
 ## Features (Path 1 — HACS Integration)
 
-- **Read-only sensors**: flow/return temperatures, outside temperature, hot water temperature, operating hours, power consumption, error states, SG-Ready status
+- **Read-only sensors**: flow/return temperatures, outside temperature, hot water temperature, operating hours, heat quantity meters (heating, hot water, total kWh), power consumption, error states, SG-Ready status
 - **Control entities**: heating mode, hot water mode, SG-Ready mode, temperature setpoints
 - **[Bath Boost (Badebooster)](#bath-boost-badebooster)**: on-demand hot water heating with progress tracking — [details below](#bath-boost-badebooster)
 - **[Smart Energy](#smart-energy)**: Solar Boost + Night Heating Pause — [details below](#smart-energy)
