@@ -166,6 +166,19 @@ Erhoeht automatisch die Warmwasser-Solltemperatur wenn die Solaranlage ueberschu
 - **Aktion:** Warmwasser-Soll wird von Normal (Standard: 55,5 °C) auf Boost-Temperatur angehoben (Standard: 65,0 °C)
 - **Mindestlaufzeit:** Einmal aktiviert, bleibt der Boost fuer eine konfigurierbare Dauer aktiv (Standard: 30 Min.) um schnelles Ein/Aus bei Wolkendurchzug zu vermeiden
 - **Netz-Sensor Konvention:** Positive Werte = Netzbezug (Verbrauch), negative Werte = Einspeisung (Verkauf). Beispiel: `sensor.grid_total = -2000` bedeutet 2000 W Einspeisung
+- **Spike-Schutz:** Eine 60-Sekunden-Entprellung verhindert Fehlausloesungen durch kurze Netz-Spitzen (z.B. wenn der Kompressor stoppt und kurzzeitig Einspeisung entsteht)
+
+#### Warmwasser-Hysterese
+
+Ihr Luxtronik-Regler hat eine **WW-Hysterese**-Einstellung (typisch 5 K), die bestimmt, wann die Warmwasseraufheizung tatsaechlich startet. Der Regler beginnt erst mit dem Aufheizen, wenn die Speichertemperatur um den Hysteresewert unter die Solltemperatur sinkt.
+
+**Beispiel:** Bei einer Solltemperatur von 55,5 °C und 5 K Hysterese startet der Regler die Aufheizung erst bei **50,5 °C** (55,5 - 5,0 = 50,5).
+
+Das ist fuer Solar Boost wichtig, weil:
+- Solar Boost erhoeht die Solltemperatur (z.B. auf 65 °C), aber die Waermepumpe startet erst bei 60 °C (bei 5 K Hysterese)
+- Wenn der Speicher bereits 58 °C hat, wird die Solltemperatur erhoeht, aber keine Aufheizung gestartet — der Solarueberschuss wird weiter ins Netz eingespeist
+
+**Konfiguration:** Tragen Sie den WW-Hysteresewert Ihres Reglers ein unter **Einstellungen > Geraete & Dienste > Luxtronik 2.0 > Konfigurieren > Solar Boost**. Das Dashboard zeigt dann die effektive Starttemperatur an. Den Hysteresewert finden Sie am Regler-Display unter *Parameter > Warmwasser > Hysterese*.
 
 **Dashboard-Visualisierung:**
 

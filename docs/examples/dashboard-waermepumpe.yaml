@@ -170,6 +170,19 @@ views:
             name: "Letzte Sicherung"
             icon: "mdi:backup-restore"
 
+      # --- Warmwasser-Hysterese Info ---
+      - type: markdown
+        content: >
+          **Effektive WW-Starttemperatur**
+
+          Ihr Luxtronik-Regler startet die Warmwasseraufheizung erst,
+          wenn die Temperatur um den Hysteresewert unter die Solltemperatur sinkt.
+
+          Beispiel: Sollwert 55,5 °C bei 5 K Hysterese = Aufheizung startet bei 50,5 °C.
+
+          Pruefen Sie die Einstellung im Regler-Display unter *Parameter > Warmwasser > Hysterese*
+          und tragen Sie den passenden Wert in den Integrationseinstellungen ein (Solar Boost Bereich).
+
       # --- Smart Energy ---
       # Note: Entity names depend on your HA language setting.
       # German HA: switch.luxtronik_2_0_nacht_heizungspause

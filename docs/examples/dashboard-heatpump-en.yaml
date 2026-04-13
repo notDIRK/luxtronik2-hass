@@ -168,6 +168,19 @@ views:
             name: "Last Backup"
             icon: "mdi:backup-restore"
 
+      # --- Hot Water Hysteresis Info ---
+      - type: markdown
+        content: >
+          **Effective WW Start Temperature**
+
+          Your Luxtronik controller only starts heating hot water when the
+          temperature drops below the setpoint by the hysteresis amount.
+
+          Example: Setpoint 55.5 °C with 5 K hysteresis = heating starts at 50.5 °C.
+
+          Check your controller display under *Parameters > Hot Water > Hysteresis*
+          and set the matching value in the integration options (Solar Boost section).
+
       # --- Smart Energy ---
       # Note: Entity names depend on your HA language setting.
       # German HA: switch.luxtronik_2_0_nacht_heizungspause

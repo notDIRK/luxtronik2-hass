@@ -169,6 +169,19 @@ Automatically raises the hot water setpoint when your solar system feeds surplus
 - **Action:** Hot water setpoint raised from normal (default: 55.5 °C) to boost temperature (default: 65.0 °C)
 - **Minimum runtime:** Once activated, boost stays active for a configurable duration (default: 30 min) to prevent rapid cycling during cloud cover
 - **Grid sensor convention:** Positive values = consumption (buying), negative values = feed-in (selling). Example: `sensor.grid_total = -2000` means 2000 W feed-in
+- **Spike protection:** A 60-second debounce prevents false triggers from short grid spikes (e.g. when the compressor stops and briefly causes feed-in overshoot)
+
+#### Hot Water Hysteresis
+
+Your Luxtronik controller has a **WW hysteresis** setting (typically 5 K) that affects when hot water heating actually starts. The controller only begins heating when the tank temperature drops below the setpoint by the hysteresis amount.
+
+**Example:** With a setpoint of 55.5 °C and 5 K hysteresis, the controller will not start heating until the temperature drops to **50.5 °C** (55.5 - 5.0 = 50.5).
+
+This matters for Solar Boost because:
+- Solar Boost raises the setpoint (e.g. to 65 °C), but the heat pump will not actually start heating until the tank drops to 60 °C (with 5 K hysteresis)
+- If your tank is already at 58 °C, Solar Boost will raise the setpoint but no heating occurs — the surplus solar energy is still exported to the grid
+
+**Configuration:** Enter your controller's WW hysteresis value in **Settings > Devices & Services > Luxtronik 2.0 > Configure > Solar Boost**. The dashboard will then display the effective start temperature. You can find the hysteresis value on your controller display under *Parameters > Hot Water > Hysteresis*.
 
 **Dashboard visualization:**
 
