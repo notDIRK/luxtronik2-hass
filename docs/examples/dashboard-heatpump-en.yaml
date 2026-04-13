@@ -146,7 +146,7 @@ views:
 
       # --- Heat Quantity Meter ---
       - type: entities
-        title: "🔥 Heat Quantity Meter"
+        title: "📊 Heat Quantity Meter"
         show_header_toggle: false
         entities:
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating

@@ -148,7 +148,7 @@ views:
 
       # --- Wärmemengenzähler ---
       - type: entities
-        title: "🔥 Wärmemengenzähler"
+        title: "📊 Wärmemengenzähler"
         show_header_toggle: false
         entities:
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating
