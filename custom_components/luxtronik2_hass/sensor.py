@@ -370,6 +370,20 @@ CORE_SENSOR_DESCRIPTIONS: tuple[LuxtronikSensorEntityDescription, ...] = (
         lux_index=154,
         value_fn=_lux_calcs.calculations[154].from_heatpump,
     ),
+    # WW Hysteresis — parameter 74 (ID_Einst_BWS_Hyst_akt).
+    # Read directly from the controller — shows the actual hysteresis value in Kelvin.
+    # This determines when hot water heating starts: setpoint minus hysteresis.
+    LuxtronikSensorEntityDescription(
+        key="ww_hysteresis",
+        name="Luxtronik WW Hysteresis",
+        native_unit_of_measurement="K",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        icon="mdi:thermometer-alert",
+        data_source="parameters",
+        lux_index=74,
+        value_fn=_lux_params.parameters[74].from_heatpump,
+    ),
     # EVU lockout contact status — calc[31] (ID_WEB_EVUin).
     # Bool: False = contact open = LOCKED OUT, True = contact closed = FREE.
     # Dashboard uses this for conditional EVU-Sperre/EVU-Freigabe display.
@@ -483,11 +497,16 @@ def _build_extra_calc_descriptions() -> tuple[LuxtronikSensorEntityDescription, 
     return tuple(descs)
 
 
+_CORE_PARAM_INDICES: frozenset[int] = frozenset({74})
+
+
 def _build_param_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
     """Build disabled-by-default descriptions for all 1,126 parameters.
 
-    Iterates all parameter objects from the luxtronik library. Each description
-    uses entity_registry_enabled_default=False (D-08) and EntityCategory.DIAGNOSTIC.
+    Iterates all parameter objects from the luxtronik library, skipping
+    core parameter indices already covered by CORE_SENSOR_DESCRIPTIONS.
+    Each description uses entity_registry_enabled_default=False (D-08)
+    and EntityCategory.DIAGNOSTIC.
 
     Returns:
         A tuple of LuxtronikSensorEntityDescription, one per parameter.
@@ -495,6 +514,8 @@ def _build_param_descriptions() -> tuple[LuxtronikSensorEntityDescription, ...]:
     descs: list[LuxtronikSensorEntityDescription] = []
     for idx, param_obj in _lux_params.parameters.items():
         if param_obj is None:
+            continue
+        if idx in _CORE_PARAM_INDICES:
             continue
         if not hasattr(param_obj, "from_heatpump"):
             continue

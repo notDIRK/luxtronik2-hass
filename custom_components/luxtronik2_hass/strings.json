@@ -34,13 +34,11 @@
         "description": "Configure how the integration connects to your Luxtronik 2.0 controller.",
         "data": {
           "host": "IP Address",
-          "poll_interval": "Poll Interval (seconds)",
-          "ww_hysteresis": "WW Hysteresis (K)"
+          "poll_interval": "Poll Interval (seconds)"
         },
         "data_description": {
           "host": "Local IP address of the Luxtronik 2.0 controller (e.g. 192.168.1.100)",
-          "poll_interval": "How often to read data from the heat pump (10–300 seconds, default: 30)",
-          "ww_hysteresis": "The hot water hysteresis set on your Luxtronik controller (in Kelvin). With a setpoint of 55.5 °C and hysteresis of 5 K, the controller only starts heating when the temperature drops to 50.5 °C. This value is displayed on the dashboard. Check your controller under Parameters > Hot Water > Hysteresis. Default: 5 K."
+          "poll_interval": "How often to read data from the heat pump (10–300 seconds, default: 30)"
         }
       },
       "solar_boost": {

@@ -186,18 +186,19 @@ views:
             icon: "mdi:backup-restore"
 
       # --- Warmwasser-Hysterese Info ---
-      # Shows the effective start temperature based on current setpoint and configured hysteresis.
-      # The hysteresis value (default: 5 K) is set in: Configure > Connection Settings > WW-Hysterese
+      # Shows the effective start temperature using the live hysteresis value from the controller.
+      # sensor.luxtronik_2_0_luxtronik_ww_hysteresis reads param 74 (ID_Einst_BWS_Hyst_akt).
       - type: markdown
         content: >
           **WW-Hysterese: Aufheizung startet bei
-          {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5) - 5.0) | round(1) }} °C**
+          {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5)
+          - states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') | float(5.0)) | round(1) }} °C**
 
-          Solltemperatur: {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C | Hysterese: 5 K
+          Solltemperatur: {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C |
+          Hysterese: {{ states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') }} K (vom Regler)
 
-          *Hinweis: Die Aufheizung startet erst wenn die WW-Temperatur um den Hysteresewert
-          unter die Solltemperatur sinkt. Den Hysteresewert finden Sie am Regler unter
-          Parameter > Warmwasser > Hysterese.*
+          *Die Aufheizung startet erst wenn die WW-Temperatur um den Hysteresewert
+          unter die Solltemperatur sinkt.*
 
       # --- Smart Energy ---
       # Note: Entity names depend on your HA language setting.

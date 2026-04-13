@@ -184,18 +184,19 @@ views:
             icon: "mdi:backup-restore"
 
       # --- Hot Water Hysteresis Info ---
-      # Shows the effective start temperature based on current setpoint and configured hysteresis.
-      # The hysteresis value (default: 5 K) is set in: Configure > Connection Settings > WW Hysteresis
+      # Shows the effective start temperature using the live hysteresis value from the controller.
+      # sensor.luxtronik_2_0_luxtronik_ww_hysteresis reads param 74 (ID_Einst_BWS_Hyst_akt).
       - type: markdown
         content: >
           **WW Hysteresis: Heating starts at
-          {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5) - 5.0) | round(1) }} °C**
+          {{ (states('number.luxtronik_2_0_warmwasser_solltemperatur') | float(55.5)
+          - states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') | float(5.0)) | round(1) }} °C**
 
-          Setpoint: {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C | Hysteresis: 5 K
+          Setpoint: {{ states('number.luxtronik_2_0_warmwasser_solltemperatur') }} °C |
+          Hysteresis: {{ states('sensor.luxtronik_2_0_luxtronik_ww_hysteresis') }} K (from controller)
 
-          *Note: The heat pump only starts heating when the hot water temperature drops
-          below the setpoint by the hysteresis amount. Check your controller under
-          Parameters > Hot Water > Hysteresis.*
+          *The heat pump only starts heating when the hot water temperature drops
+          below the setpoint by the hysteresis amount.*
 
       # --- Smart Energy ---
       # Note: Entity names depend on your HA language setting.

@@ -41,7 +41,6 @@ from .const import (
     DEFAULT_SOLAR_MIN_RUNTIME,
     DEFAULT_SOLAR_NORMAL_TEMP,
     DEFAULT_SOLAR_THRESHOLD,
-    DEFAULT_WW_HYSTERESIS,
     DOMAIN,
 )
 
@@ -113,7 +112,6 @@ class LuxtronikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_HOST: host,
                         "port": DEFAULT_PORT,
                         "poll_interval": DEFAULT_POLL_INTERVAL,
-                        "ww_hysteresis": DEFAULT_WW_HYSTERESIS,
                     },
                 )
 
@@ -236,16 +234,9 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
             self.config_entry.data.get("poll_interval", DEFAULT_POLL_INTERVAL),
         )
 
-        current_ww_hysteresis: float = self.config_entry.data.get(
-            "ww_hysteresis", DEFAULT_WW_HYSTERESIS
-        )
-
         if user_input is not None:
             host: str = user_input[CONF_HOST].strip()
             poll_interval: int = user_input["poll_interval"]
-            ww_hysteresis: float = user_input.get(
-                "ww_hysteresis", DEFAULT_WW_HYSTERESIS
-            )
 
             if host != current_host:
                 try:
@@ -263,7 +254,6 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                         CONF_HOST: host,
                         "port": DEFAULT_PORT,
                         "poll_interval": poll_interval,
-                        "ww_hysteresis": ww_hysteresis,
                     },
                 )
                 return self.async_create_entry(title="", data={})
@@ -276,10 +266,6 @@ class LuxtronikOptionsFlow(config_entries.OptionsFlow):
                     vol.Required(
                         "poll_interval", default=current_poll_interval
                     ): vol.All(int, vol.Range(min=10, max=300)),
-                    vol.Optional(
-                        "ww_hysteresis",
-                        default=current_ww_hysteresis,
-                    ): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=15.0)),
                 }
             ),
             errors=errors,

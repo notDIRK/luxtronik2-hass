@@ -34,13 +34,11 @@
         "description": "Konfigurieren Sie die Verbindung zum Luxtronik 2.0 Regler.",
         "data": {
           "host": "IP-Adresse",
-          "poll_interval": "Abfrageintervall (Sekunden)",
-          "ww_hysteresis": "WW-Hysterese (K)"
+          "poll_interval": "Abfrageintervall (Sekunden)"
         },
         "data_description": {
           "host": "Lokale IP-Adresse des Luxtronik 2.0 Reglers (z.B. 192.168.1.100)",
-          "poll_interval": "Wie oft Daten von der Waermepumpe gelesen werden (10–300 Sekunden, Standard: 30)",
-          "ww_hysteresis": "Die Warmwasser-Hysterese Ihres Luxtronik-Reglers (in Kelvin). Bei einer Solltemperatur von 55,5 °C und 5 K Hysterese startet die Aufheizung erst bei 50,5 °C. Dieser Wert wird im Dashboard angezeigt. Pruefen Sie die Einstellung am Regler unter Parameter > Warmwasser > Hysterese. Standard: 5 K."
+          "poll_interval": "Wie oft Daten von der Waermepumpe gelesen werden (10–300 Sekunden, Standard: 30)"
         }
       },
       "solar_boost": {
