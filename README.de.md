@@ -209,6 +209,32 @@ Alle Funktionen werden im Options-Flow der Integration konfiguriert:
 
 Smart-Energy-Schalter koennen auch zur Laufzeit ueber die Switch-Entities umgeschaltet werden (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_nacht_heizungspause`).
 
+**Laufzeit-Status-Attribute:** Die Schalter zeigen Live-Statusinformationen als State-Attribute:
+
+| Schalter | Attribut | Beispiel | Beschreibung |
+|----------|----------|----------|-------------|
+| Solar Boost | `boost_active` | `true` | Ob der Boost gerade die Solltemperatur anhebt |
+| Solar Boost | `boost_activated_at` | `2026-04-13T09:19:06` | Wann das System den Boost zuletzt aktiviert hat |
+| Solar Boost | `boost_running_since` | `2h 15min` | Wie lange der aktuelle Boost laeuft |
+| Nacht-Pause | `pause_active` | `true` | Ob die Fussbodenheizung gerade pausiert |
+| Nacht-Pause | `pause_window` | `18:00 – 09:00` | Das konfigurierte Pausen-Zeitfenster |
+
+---
+
+## Waermemengenzaehler
+
+Die Integration liest die Luxtronik-Waermemengenzaehler direkt aus der Steuerung. Diese Sensoren sind standardmaessig aktiviert und zeigen die gesamte thermische Energie seit Inbetriebnahme.
+
+| Sensor | Luxtronik Index | Beschreibung |
+|--------|----------------|-------------|
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_heating` | calc 151 (ID_WEB_WMZ_Heizung) | Thermische Energie fuer Raumheizung (kWh) |
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water` | calc 152 (ID_WEB_WMZ_Brauchwasser) | Thermische Energie fuer Warmwasser (kWh) |
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_total` | calc 154 (ID_WEB_WMZ_Seit) | Gesamte thermische Energie seit Inbetriebnahme (kWh) |
+
+Diese Werte verwenden die `ENERGY`-Geraeteklasse mit `TOTAL_INCREASING`-Statusklasse und sind damit kompatibel mit dem HA Energie-Dashboard fuer Langzeitauswertungen.
+
+Das Dashboard enthaelt eine eigene Kachel mit allen drei Zaehlern.
+
 ## Voraussetzungen
 
 - Home Assistant **2024.1** oder neuer

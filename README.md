@@ -212,6 +212,32 @@ All features are configured in the integration's options flow:
 
 Smart Energy switches can also be toggled at runtime via the switch entities (`switch.luxtronik_2_0_solar_boost`, `switch.luxtronik_2_0_night_heating_pause`).
 
+**Runtime status attributes:** The switches expose live runtime information as state attributes:
+
+| Switch | Attribute | Example | Description |
+|--------|-----------|---------|-------------|
+| Solar Boost | `boost_active` | `true` | Whether the boost is currently raising the setpoint |
+| Solar Boost | `boost_activated_at` | `2026-04-13T09:19:06` | When the system last activated the boost |
+| Solar Boost | `boost_running_since` | `2h 15min` | How long the current boost has been active |
+| Night Pause | `pause_active` | `true` | Whether floor heating is currently paused |
+| Night Pause | `pause_window` | `18:00 – 09:00` | The configured pause time window |
+
+---
+
+## Heat Quantity Meters
+
+The integration reads the Luxtronik heat quantity meters (Waermemengenzaehler) directly from the controller. These sensors are enabled by default and show the total thermal energy delivered since commissioning.
+
+| Sensor | Luxtronik Index | Description |
+|--------|----------------|-------------|
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_heating` | calc 151 (ID_WEB_WMZ_Heizung) | Thermal energy delivered for space heating (kWh) |
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water` | calc 152 (ID_WEB_WMZ_Brauchwasser) | Thermal energy delivered for hot water (kWh) |
+| `sensor.luxtronik_2_0_luxtronik_heat_quantity_total` | calc 154 (ID_WEB_WMZ_Seit) | Total thermal energy since commissioning (kWh) |
+
+These values use the `ENERGY` device class with `TOTAL_INCREASING` state class, making them compatible with the HA Energy Dashboard for long-term tracking.
+
+The dashboard includes a dedicated card showing all three meters.
+
 ## Requirements
 
 - Home Assistant **2024.1** or newer
