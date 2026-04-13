@@ -87,7 +87,11 @@
       },
       "dashboard_info": {
         "title": "Dashboard Setup",
-        "description": "Ready-to-use dashboards are included in two languages. Pick the one matching your HA language.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Heat Pump') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from one of the links below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**English Dashboard:** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml\n\n**German Dashboard (Deutsch):** https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
+        "description": "Ready-to-use dashboards are included in two languages. Pick the one matching your HA language.\n\n**How to set it up:**\n1. Go to **Settings → Dashboards → Add Dashboard**\n2. Choose a name (e.g. 'Heat Pump') and icon (mdi:heat-pump)\n3. Open the new dashboard → **⋮** → **Edit Dashboard** → **⋮** → **Raw configuration editor**\n4. Copy the YAML from one of the links below and paste it\n5. Replace `your-heatpump-ip` with your heat pump's IP address\n6. Click **Save**, then **Done**\n\n**English Dashboard:** {dashboard_en_url}\n\n**German Dashboard (Deutsch):** {dashboard_de_url}",
+        "description_placeholders": {
+          "dashboard_en_url": "https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-heatpump-en.yaml",
+          "dashboard_de_url": "https://github.com/notDIRK/luxtronik2-hass/blob/master/docs/examples/dashboard-waermepumpe.yaml"
+        }
       }
     },
     "error": {

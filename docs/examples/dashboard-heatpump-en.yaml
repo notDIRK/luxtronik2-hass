@@ -151,13 +151,13 @@ views:
         entities:
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating
             name: "Heating"
-            icon: "mdi:radiator"
+            icon: "mdi:fire"
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water
             name: "Hot Water"
-            icon: "mdi:water-boiler"
+            icon: "mdi:water-thermometer"
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_total
             name: "Total (since commissioning)"
-            icon: "mdi:counter"
+            icon: "mdi:sigma"
 
       # --- Setpoints ---
       - type: entities

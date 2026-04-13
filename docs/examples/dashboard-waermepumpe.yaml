@@ -153,13 +153,13 @@ views:
         entities:
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_heating
             name: "Heizung"
-            icon: "mdi:radiator"
+            icon: "mdi:fire"
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_hot_water
             name: "Warmwasser"
-            icon: "mdi:water-boiler"
+            icon: "mdi:water-thermometer"
           - entity: sensor.luxtronik_2_0_luxtronik_heat_quantity_total
             name: "Gesamt (seit Inbetriebnahme)"
-            icon: "mdi:counter"
+            icon: "mdi:sigma"
 
       # --- Sollwerte / Grenzwerte ---
       - type: entities
