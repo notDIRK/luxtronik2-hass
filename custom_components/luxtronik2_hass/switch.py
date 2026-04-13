@@ -18,6 +18,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DEFAULT_NIGHT_PAUSE_ENABLED,
@@ -30,12 +31,13 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class LuxtronikSmartEnergySwitch(SwitchEntity):
+class LuxtronikSmartEnergySwitch(SwitchEntity, RestoreEntity):
     """Base switch for Smart Energy features.
 
     Stores the toggle state in config entry data so it persists across
-    restarts. Toggling triggers a config entry reload which restarts the
-    SmartEnergyManager with the new setting.
+    restarts. Inherits from RestoreEntity so that ``last_changed`` and
+    ``last_updated`` timestamps survive HA restarts — the user sees when
+    the switch was actually toggled, not when HA last started.
     """
 
     _attr_has_entity_name = True
@@ -62,6 +64,15 @@ class LuxtronikSmartEnergySwitch(SwitchEntity):
         self._default = default
         self._attr_unique_id = f"{entry.entry_id}_switch_{key}"
         self._attr_translation_key = key
+
+    async def async_added_to_hass(self) -> None:
+        """Restore previous state on startup to preserve last_changed timestamp."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        # State is authoritative from config entry data, but restoring
+        # prevents HA from treating startup as a state change event.
+        if last_state is not None:
+            self._attr_is_on = last_state.state == "on"
 
     @property
     def device_info(self) -> DeviceInfo:
