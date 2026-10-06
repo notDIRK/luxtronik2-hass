@@ -24,19 +24,58 @@ Architecture constraints enforced here:
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
+import contextlib
+from datetime import datetime, timedelta
 import logging
+import socket
 import time
+from collections.abc import Iterator
 
 import luxtronik
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
-from .const import DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DOMAIN, WRITE_RATE_LIMIT_SECONDS
+from .const import (
+    COORDINATOR_TIMEOUT,
+    DEFAULT_POLL_INTERVAL,
+    DEFAULT_PORT,
+    DOMAIN,
+    SOCKET_TIMEOUT,
+    WRITE_RATE_LIMIT_SECONDS,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def _socket_default_timeout(timeout: float) -> Iterator[None]:
+    """Temporarily set the process-wide default socket timeout.
+
+    ha-005: the pinned ``luxtronik==0.3.14`` library opens its TCP socket and
+    issues blocking ``recv()`` calls with no timeout, so a silently-dropped
+    connection (observed: 35 h hang) blocks the executor thread forever. The
+    library exposes no timeout parameter, so we bound its sockets at the stdlib
+    level: ``socket.setdefaulttimeout`` applies to every socket created *after*
+    the call, which is exactly when the library builds its connection inside
+    ``read()``/``write()``. This depends only on documented stdlib behaviour,
+    not on the library's private internals (which cannot be verified here).
+
+    The whole read/write coroutine is independently bounded by
+    ``asyncio.timeout(COORDINATOR_TIMEOUT)``; this socket timeout additionally
+    unblocks the orphaned executor thread so it is returned to the pool instead
+    of leaking.
+
+    Runs inside the executor thread only. The prior default is restored on exit.
+    """
+    previous = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(timeout)
+    try:
+        yield
+    finally:
+        socket.setdefaulttimeout(previous)
 
 
 class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
@@ -84,6 +123,10 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         # CTRL-04, D-04: Per-parameter write timestamp tracking for rate limiting.
         # Same pattern as PollingEngine._write_timestamps in the proxy codebase.
         self._write_timestamps: dict[int, float] = {}
+        # ha-005: timestamp of the last fully successful read. Exposed as a
+        # diagnostic sensor ("Letzte erfolgreiche Abfrage") so a stalled poll is
+        # observable even before entities flip to unavailable.
+        self.last_successful_update: datetime | None = None
 
         super().__init__(
             hass,
@@ -111,11 +154,23 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         """
         async with self._lock:  # ARCH-03: serialize concurrent read/write access
             try:
-                data = await self.hass.async_add_executor_job(self._sync_read)
+                # ha-005: whole-poll ceiling. On timeout the coroutine returns
+                # (raising UpdateFailed), the lock is released by the context
+                # manager, last_update_success flips to False → entities become
+                # unavailable, and HA reschedules the next refresh — recovery
+                # without a restart.
+                async with asyncio.timeout(COORDINATOR_TIMEOUT):
+                    data = await self.hass.async_add_executor_job(self._sync_read)
+            except TimeoutError as err:
+                raise UpdateFailed(
+                    f"Timeout after {COORDINATOR_TIMEOUT}s communicating with "
+                    f"Luxtronik at {self._host}"
+                ) from err
             except Exception as err:
                 raise UpdateFailed(
                     f"Error communicating with Luxtronik at {self._host}: {err}"
                 ) from err
+        self.last_successful_update = dt_util.utcnow()
         return data
 
     def _sync_read(self) -> dict:
@@ -148,7 +203,10 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         lux.calculations = luxtronik.Calculations()
         lux.parameters = luxtronik.Parameters()
         lux.visibilities = luxtronik.Visibilities()
-        lux.read()  # blocking — OK, we are running in the executor thread
+        # ha-005: bound the library's timeout-less socket (connect + recv) so a
+        # silent/half-open connection cannot block this executor thread forever.
+        with _socket_default_timeout(SOCKET_TIMEOUT):
+            lux.read()  # blocking — OK, we are running in the executor thread
 
         # Extract raw integer values for all parameters (read/write Luxtronik params).
         # lux.parameters.parameters is a dict[int, TypedParam] where values are typed
@@ -225,9 +283,21 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
                 return
 
             try:
-                await self.hass.async_add_executor_job(
-                    self._sync_write, writes_to_send
+                # ha-005: bound the write the same way as the read, so a hung
+                # write-confirmation cannot hold the lock forever (the original
+                # 35 h hang was triggered by a Solar-Boost write).
+                async with asyncio.timeout(COORDINATOR_TIMEOUT):
+                    await self.hass.async_add_executor_job(
+                        self._sync_write, writes_to_send
+                    )
+            except TimeoutError:
+                _LOGGER.error(
+                    "Timeout after %ds writing parameters %s to Luxtronik at %s",
+                    COORDINATOR_TIMEOUT,
+                    writes_to_send,
+                    self._host,
                 )
+                raise
             except Exception as err:
                 _LOGGER.error(
                     "Error writing parameters %s to Luxtronik at %s: %s",
@@ -265,7 +335,10 @@ class LuxtronikCoordinator(DataUpdateCoordinator[dict]):
         # The write() method reads parameters.queue synchronously at call time.
         # (Pitfall 3 from RESEARCH.md)
         lux.parameters.queue = dict(param_writes)
-        lux.write()
+        # ha-005: bound the library's timeout-less socket during the write and
+        # the read-back that follows it inside write().
+        with _socket_default_timeout(SOCKET_TIMEOUT):
+            lux.write()
 
         _LOGGER.info(
             "Luxtronik write complete: %s",

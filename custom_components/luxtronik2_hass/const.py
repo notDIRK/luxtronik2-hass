@@ -6,6 +6,15 @@ DOMAIN = "luxtronik2_hass"
 DEFAULT_PORT = 8889
 DEFAULT_POLL_INTERVAL = 30  # seconds
 
+# Network timeouts (ha-005: integration hung 35 h on a silent socket).
+# SOCKET_TIMEOUT bounds a single blocking socket op (connect / recv) so the
+# executor thread cannot block forever and leak out of the HA thread pool.
+# COORDINATOR_TIMEOUT bounds the whole read/write coroutine so the serialization
+# lock is always released and UpdateFailed is raised, flipping entities to
+# unavailable and letting HA reschedule the next refresh.
+SOCKET_TIMEOUT = 10        # seconds — per connect()/recv() on the WP socket
+COORDINATOR_TIMEOUT = 45   # seconds — whole-poll / whole-write ceiling
+
 # Device identification
 MANUFACTURER = "Alpha Innotec / Novelan"
 MODEL = "Luxtronik 2.0"

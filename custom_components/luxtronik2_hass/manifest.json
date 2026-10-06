@@ -12,5 +12,5 @@
   "requirements": [
     "luxtronik==0.3.14"
   ],
-  "version": "1.2.6"
+  "version": "1.2.7"
 }

@@ -17,8 +17,8 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
+from homeassistant.core import Event, HomeAssistant
 
 from .bath_boost import BathBoostManager
 from .const import DEFAULT_PORT, DOMAIN
@@ -80,6 +80,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     bath_boost = BathBoostManager(hass, coordinator, entry)
     await bath_boost.async_start()
     hass.data[DOMAIN][f"{entry.entry_id}_bath_boost"] = bath_boost
+
+    # ha-003: async_unload_entry does NOT run on a plain HA stop/restart, so the
+    # boost/pause parameters were never restored on shutdown. Listen for
+    # EVENT_HOMEASSISTANT_STOP and stop both managers (which reset the setpoint
+    # and heating mode) before HA goes down. The reset-on-start logic covers the
+    # crash/power-loss case where this event never fires.
+    async def _async_on_hass_stop(_event: Event) -> None:
+        await smart_energy.async_stop()
+        await bath_boost.async_stop()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_on_hass_stop)
+    )
 
     # D-14: Forward to entity platforms (sensor, select, number, switch).
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

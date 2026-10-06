@@ -17,6 +17,7 @@ switch and number entities exposed by switch.py.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, time, timedelta
 
@@ -88,6 +89,11 @@ class SmartEnergyManager:
         # Unsub callbacks for cleanup
         self._unsub_grid_listener = None
         self._unsub_timer = None
+
+        # ha-005: serialize evaluations so grid-change bursts and the 60 s timer
+        # cannot stack unbounded tasks while a coordinator write is slow. A new
+        # evaluation is DROPPED (not queued) while one is already in flight.
+        self._eval_lock = asyncio.Lock()
 
     @property
     def solar_boost_enabled(self) -> bool:
@@ -166,6 +172,10 @@ class SmartEnergyManager:
             self.hass, self._periodic_evaluate, timedelta(seconds=60)
         )
 
+        # ha-003: reconcile a boost setpoint left on the controller across an
+        # HA restart BEFORE the first normal evaluation.
+        await self._recover_setpoint_on_start()
+
         # Initial evaluation
         await self._evaluate_all()
 
@@ -202,17 +212,90 @@ class SmartEnergyManager:
     @callback
     def _handle_grid_change(self, event) -> None:
         """Handle grid sensor state changes."""
-        self.hass.async_create_task(self._evaluate_solar_boost())
+        self.hass.async_create_task(self._guarded_evaluate(solar_only=True))
 
     @callback
     def _periodic_evaluate(self, now=None) -> None:
         """Periodically evaluate night pause and boost timeout."""
-        self.hass.async_create_task(self._evaluate_all())
+        self.hass.async_create_task(self._guarded_evaluate())
+
+    async def _guarded_evaluate(self, solar_only: bool = False) -> None:
+        """Run an evaluation unless one is already in flight.
+
+        ha-005: without this guard, every grid-sensor change plus the 60 s timer
+        spawned a fresh task; when a coordinator write hung, those tasks piled up
+        (~900 observed overnight). ``asyncio.Lock.locked()`` and the immediate
+        ``async with`` acquire run without an intervening await, so the first
+        task acquires the lock and all concurrent ones see it locked and drop.
+        """
+        if self._eval_lock.locked():
+            _LOGGER.debug("Smart Energy evaluation already running — dropping this one")
+            return
+        async with self._eval_lock:
+            if solar_only:
+                await self._evaluate_solar_boost()
+            else:
+                await self._evaluate_all()
 
     async def _evaluate_all(self) -> None:
         """Evaluate both features."""
         await self._evaluate_solar_boost()
         await self._evaluate_night_pause()
+
+    def _surplus_present(self) -> bool:
+        """Return True if grid feed-in currently exceeds the boost threshold.
+
+        Convention: grid sensor positive = consumption, negative = feed-in.
+        """
+        if not self.grid_sensor:
+            return False
+        state = self.hass.states.get(self.grid_sensor)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return False
+        try:
+            grid_power = float(state.state)
+        except (ValueError, TypeError):
+            return False
+        return grid_power < -self.solar_threshold
+
+    async def _recover_setpoint_on_start(self) -> None:
+        """Reconcile a boost setpoint left on the controller across a restart.
+
+        ha-003: boost state lives only in memory (``self._boost_active``), so an
+        HA restart during an active boost loses it. The controller, however, may
+        still sit at ``solar_boost_temp``. The normal deactivation path only runs
+        ``if self._boost_active``, so without this the stale 65 °C setpoint would
+        persist until the next real boost cycle (observed: stuck at 65 °C until
+        set manually). We read the controller's ACTUAL setpoint and, if it is at
+        the boost level, either adopt the boost (surplus still present) or restore
+        the normal setpoint (no surplus).
+        """
+        if not self.solar_boost_enabled:
+            return
+        data = self.coordinator.data or {}
+        raw = data.get("parameters", {}).get(PARAM_HOT_WATER_SETPOINT)
+        if raw is None:
+            return
+        current_setpoint = raw / 10.0
+        # Only act when the controller is (≈) at the boost setpoint.
+        if abs(current_setpoint - self.solar_boost_temp) > 0.1:
+            return
+        if self._surplus_present():
+            _LOGGER.info(
+                "Solar-Boost setpoint (%.1f°C) found at startup with surplus "
+                "present — adopting as active boost",
+                current_setpoint,
+            )
+            self._boost_active = True
+            self._boost_activated_at = datetime.now()
+            return
+        _LOGGER.info(
+            "Stale Solar-Boost setpoint (%.1f°C) found at startup without "
+            "surplus — restoring normal %.1f°C",
+            current_setpoint,
+            self.solar_normal_temp,
+        )
+        await self._set_hot_water_temp(self.solar_normal_temp)
 
     async def _evaluate_solar_boost(self) -> None:
         """Evaluate whether to activate or deactivate solar boost.
@@ -272,24 +355,33 @@ class SmartEnergyManager:
                     )
 
     async def _activate_boost(self) -> None:
-        """Activate solar boost — raise hot water setpoint."""
+        """Activate solar boost — raise hot water setpoint.
+
+        ha-005: state is set BEFORE the write. If the write hangs or fails, the
+        manager still regards the boost as active, so the next evaluation runs
+        the normal deactivation path instead of re-issuing an activation write
+        on top of a possibly-pending one.
+        """
         _LOGGER.info(
             "Solar boost ACTIVATING — setting hot water to %.1f°C",
             self.solar_boost_temp,
         )
-        await self._set_hot_water_temp(self.solar_boost_temp)
         self._boost_active = True
         self._boost_activated_at = datetime.now()
+        await self._set_hot_water_temp(self.solar_boost_temp)
 
     async def _deactivate_boost(self) -> None:
-        """Deactivate solar boost — restore normal hot water setpoint."""
+        """Deactivate solar boost — restore normal hot water setpoint.
+
+        ha-005: state is cleared BEFORE the write (see _activate_boost).
+        """
         _LOGGER.info(
             "Solar boost DEACTIVATING — setting hot water to %.1f°C",
             self.solar_normal_temp,
         )
-        await self._set_hot_water_temp(self.solar_normal_temp)
         self._boost_active = False
         self._boost_activated_at = None
+        await self._set_hot_water_temp(self.solar_normal_temp)
 
     async def _evaluate_night_pause(self) -> None:
         """Evaluate whether to activate or deactivate night heating pause.
@@ -308,12 +400,13 @@ class SmartEnergyManager:
 
         if in_night_window and not self._night_pause_active:
             _LOGGER.info("Night heating pause ACTIVATING — setting heating to OFF")
-            await self._set_heating_mode(HEATING_MODE_OFF)
+            # ha-005: set state before the write (see _activate_boost).
             self._night_pause_active = True
+            await self._set_heating_mode(HEATING_MODE_OFF)
         elif not in_night_window and self._night_pause_active:
             _LOGGER.info("Night heating pause DEACTIVATING — setting heating to AUTO")
-            await self._set_heating_mode(HEATING_MODE_AUTO)
             self._night_pause_active = False
+            await self._set_heating_mode(HEATING_MODE_AUTO)
 
     def _is_in_night_window(self, now: time) -> bool:
         """Check if the current time is within the night pause window.

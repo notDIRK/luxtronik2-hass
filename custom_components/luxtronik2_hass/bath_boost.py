@@ -254,7 +254,36 @@ class BathBoostManager:
         self._unsub_listener = self.coordinator.async_add_listener(
             self._on_coordinator_update
         )
+        # ha-003: reconcile a bath boost left running across an HA restart.
+        await self._recover_state_on_start()
         _LOGGER.info("Bath boost manager started")
+
+    async def _recover_state_on_start(self) -> None:
+        """Restore normal hot-water mode if a bath boost survived a restart.
+
+        ha-003: boost state lives only in memory, so an HA restart during an
+        active bath boost loses ``self._boost_active`` while the controller stays
+        in Party mode at the target setpoint. Party mode is only ever set by this
+        manager, so finding the controller in Party mode at startup means a stale
+        boost: restore Automatic mode and the normal setpoint. Keyed on mode
+        alone (not setpoint) so it converges even if Solar Boost recovery has
+        already rewritten the setpoint.
+        """
+        data = self.coordinator.data or {}
+        mode = data.get("parameters", {}).get(PARAM_HOT_WATER_MODE)
+        if mode != HOT_WATER_MODE_PARTY:
+            return
+        _LOGGER.info(
+            "Stale Bath-Boost state (Party mode) found at startup — restoring "
+            "Automatic mode and normal %.1f°C",
+            self.normal_temp,
+        )
+        await self.coordinator.async_write_parameters(
+            {
+                PARAM_HOT_WATER_MODE: HOT_WATER_MODE_AUTOMATIC,
+                PARAM_HOT_WATER_SETPOINT: int(self.normal_temp * 10),
+            }
+        )
 
     async def async_stop(self) -> None:
         """Stop listening and restore normal parameters if boost is active."""
