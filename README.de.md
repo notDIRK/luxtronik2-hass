@@ -177,6 +177,7 @@ Ihr Luxtronik-Regler hat eine **WW-Hysterese**-Einstellung (typisch 5 K), die be
 Das ist fuer Solar Boost wichtig, weil:
 - Solar Boost erhoeht die Solltemperatur (z.B. auf 65 °C), aber die Waermepumpe startet erst bei 60 °C (bei 5 K Hysterese)
 - Wenn der Speicher bereits 58 °C hat, wird die Solltemperatur erhoeht, aber keine Aufheizung gestartet — der Solarueberschuss wird weiter ins Netz eingespeist
+- **Waehle eine Boost-Temperatur, die die Waermepumpe tatsaechlich erreicht.** Pruefe, welche Warmwassertemperatur deine Waermepumpe in der Praxis hoechstens erreicht (z. B. etwa 60,5 °C). Liegt die Boost-Temperatur darueber, liegt der Speicher fast immer unter „Soll − Hysterese", und der Verdichter startet immer wieder fuer kurze Laeufe. Beispiel: Boost 65 °C mit 5 K Hysterese startet bei jedem Unterschreiten von 60 °C neu. Eine Boost-Temperatur auf oder knapp unter dem erreichbaren Maximum vermeidet das.
 
 **Automatisch:** Die Integration liest den WW-Hysteresewert direkt aus dem Regler (Parameter 74, `ID_Einst_BWS_Hyst_akt`) — keine manuelle Konfiguration noetig. Der Sensor `sensor.luxtronik_2_0_luxtronik_ww_hysteresis` wird bei jedem Abfragezyklus aktualisiert (Standard: 30s). Das Dashboard berechnet und zeigt die effektive Starttemperatur automatisch an.
 
@@ -218,6 +219,21 @@ Smart-Energy-Schalter koennen auch zur Laufzeit ueber die Switch-Entities umgesc
 | Solar Boost | `boost_running_since` | `2h 15min` | Wie lange der aktuelle Boost laeuft |
 | Nacht-Pause | `pause_active` | `true` | Ob die Fussbodenheizung gerade pausiert |
 | Nacht-Pause | `pause_window` | `18:00 – 09:00` | Das konfigurierte Pausen-Zeitfenster |
+
+### Verhalten bei Neustart
+
+Solar Boost, Nacht-Heizungspause und Badebooster aendern Einstellungen **am Waermepumpen-Regler**. Diese Einstellungen bleiben am Regler stehen, auch wenn Home Assistant nicht laeuft. Seit v1.2.7 sorgt die Integration dafuer, dass bei Neustart, Stopp oder Absturz von Home Assistant nichts haengen bleibt:
+
+| Situation | Was die Integration tut |
+|-----------|-------------------------|
+| **Home Assistant faehrt herunter oder startet neu** | Vor dem Stopp wird das Warmwasser-Soll auf die Normaltemperatur zurueckgesetzt, der Heizmodus wieder auf „Automatik" gestellt und ein laufender Badebooster beendet. |
+| **Start: Warmwasser-Soll steht noch auf der Solar-Boost-Temperatur** (z. B. nach einem Absturz) | Der Boost wird uebernommen und sofort geprueft: genug Ueberschuss → er laeuft weiter; kein Ueberschuss → die Normaltemperatur wird wiederhergestellt. Ist der Netz-Sensor noch nicht verfuegbar, passiert das, sobald er seinen ersten Wert meldet. |
+| **Start: Heizmodus „Aus" und Nacht-Heizungspause aktiviert** | Wird als laufende Pause behandelt: Innerhalb des Nachtfensters laeuft sie weiter, ausserhalb geht die Heizung zurueck auf „Automatik". |
+| **Start: Party-Modus mit der Badebooster-Zieltemperatur** | Normalmodus und Normaltemperatur werden wiederhergestellt. Der Boost laeuft nicht weiter. Wenn du noch Warmwasser brauchst, druecke den Knopf erneut. |
+
+**Eigene Einstellungen bleiben unangetastet.** Beim Start uebernimmt die Integration nur Werte, die sie selbst schreibt, und nur, solange die Funktion aktiviert ist. Sie aendert zum Beispiel nicht: Heizung „Aus" im Sommer bei deaktivierter Nacht-Heizungspause, ein von Hand gesetztes Soll, das von der Boost-Temperatur abweicht, oder Party-Modus mit einem anderen Soll als dem Badebooster-Ziel.
+
+> **Vor v1.2.7:** Wurde Home Assistant waehrend eines aktiven Solar Boost neu gestartet, blieb das Soll auf der Boost-Temperatur (z. B. 65 °C), bis der naechste Boost-Zyklus endete. Die Waermepumpe heizte dann weiter Warmwasser mit Netzstrom, auch nachts. Blieb der Heizmodus „Aus" aus der Nachtpause stehen, blieb die Fussbodenheizung aus. Falls du betroffen warst, pruefe nach dem Update einmal Warmwasser-Soll und Heizmodus.
 
 ---
 

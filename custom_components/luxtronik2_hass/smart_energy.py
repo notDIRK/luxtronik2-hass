@@ -13,6 +13,13 @@ ensuring hot water is available in the morning.
 
 Both features are independently toggleable and fully configurable via HA
 switch and number entities exposed by switch.py.
+
+**Restart safety**: The boost/pause state lives only in memory. If Home
+Assistant stops or crashes while a boost or pause is active, the controller
+keeps the raised setpoint / heating OFF. On startup the manager therefore
+reconciles with the values actually on the controller (see
+``_reconcile_controller_state``) so a stale boost or pause is taken over and
+ended by the normal evaluation instead of hanging until the next cycle.
 """
 
 from __future__ import annotations
@@ -39,7 +46,9 @@ from .const import (
     DEFAULT_SOLAR_THRESHOLD,
     HEATING_MODE_AUTO,
     HEATING_MODE_OFF,
+    HOT_WATER_MODE_PARTY,
     PARAM_HEATING_MODE,
+    PARAM_HOT_WATER_MODE,
     PARAM_HOT_WATER_SETPOINT,
     SOLAR_DEBOUNCE_SECONDS,
 )
@@ -155,6 +164,9 @@ class SmartEnergyManager:
 
         Called from __init__.py after the coordinator is set up.
         """
+        # Take over a boost/pause left on the controller by a previous run
+        self._reconcile_controller_state()
+
         # Listen to grid sensor state changes for solar boost
         if self.grid_sensor:
             self._unsub_grid_listener = async_track_state_change_event(
@@ -180,8 +192,58 @@ class SmartEnergyManager:
             self.night_pause_end,
         )
 
+    def _reconcile_controller_state(self) -> None:
+        """Adopt a boost or pause that a previous run left on the controller.
+
+        Without this, a restart during an active Solar Boost leaves the hot
+        water setpoint at the boost temperature indefinitely: the in-memory
+        flag is False after startup, so ``_evaluate_solar_boost`` never
+        deactivates it. The same applies to a Night Heating Pause that ends
+        while Home Assistant is down (heating would stay OFF).
+
+        Only values that exactly match what this manager writes are adopted,
+        and only while the feature is enabled, so manual settings stay
+        untouched. An adopted boost counts as having passed its minimum
+        runtime; the initial evaluation then ends it unless the surplus
+        is still there.
+        """
+        params = (self.coordinator.data or {}).get("parameters", {})
+
+        boost_raw = int(self.solar_boost_temp * 10)
+        if (
+            self.solar_boost_enabled
+            and boost_raw != int(self.solar_normal_temp * 10)
+            and params.get(PARAM_HOT_WATER_SETPOINT) == boost_raw
+            # Party mode means Bath Boost owns the setpoint (it cleans up itself)
+            and params.get(PARAM_HOT_WATER_MODE) != HOT_WATER_MODE_PARTY
+        ):
+            _LOGGER.warning(
+                "Hot water setpoint is still at the solar boost value %.1f°C "
+                "from a previous run — taking over the boost",
+                self.solar_boost_temp,
+            )
+            self._boost_active = True
+            self._boost_activated_at = datetime.now() - timedelta(
+                minutes=self.solar_min_runtime
+            )
+
+        if (
+            self.night_pause_enabled
+            and params.get(PARAM_HEATING_MODE) == HEATING_MODE_OFF
+        ):
+            _LOGGER.info(
+                "Heating mode is OFF on startup — treating it as an active "
+                "night heating pause"
+            )
+            self._night_pause_active = True
+
     async def async_stop(self) -> None:
-        """Stop all listeners and restore normal parameters."""
+        """Stop all listeners and restore normal parameters.
+
+        Called on config entry unload and on Home Assistant shutdown
+        (EVENT_HOMEASSISTANT_STOP, registered in __init__.py). Safe to call
+        more than once.
+        """
         if self._unsub_grid_listener:
             self._unsub_grid_listener()
             self._unsub_grid_listener = None

@@ -180,6 +180,7 @@ Your Luxtronik controller has a **WW hysteresis** setting (typically 5 K) that a
 This matters for Solar Boost because:
 - Solar Boost raises the setpoint (e.g. to 65 °C), but the heat pump will not actually start heating until the tank drops to 60 °C (with 5 K hysteresis)
 - If your tank is already at 58 °C, Solar Boost will raise the setpoint but no heating occurs — the surplus solar energy is still exported to the grid
+- **Choose a boost temperature the heat pump can actually reach.** Check the highest hot water temperature your heat pump reaches in practice (for example about 60.5 °C). If the boost temperature is above that value, the tank sits below "setpoint − hysteresis" most of the time, so the compressor restarts again and again for short runs. Example: boost 65 °C with 5 K hysteresis restarts at every dip below 60 °C. Setting the boost temperature at or slightly below the reachable maximum avoids this.
 
 **Automatic:** The integration reads the WW hysteresis value directly from the controller (parameter 74, `ID_Einst_BWS_Hyst_akt`) — no manual configuration needed. The sensor `sensor.luxtronik_2_0_luxtronik_ww_hysteresis` updates every poll cycle (default: 30s). The dashboard calculates and displays the effective start temperature automatically.
 
@@ -221,6 +222,21 @@ Smart Energy switches can also be toggled at runtime via the switch entities (`s
 | Solar Boost | `boost_running_since` | `2h 15min` | How long the current boost has been active |
 | Night Pause | `pause_active` | `true` | Whether floor heating is currently paused |
 | Night Pause | `pause_window` | `18:00 – 09:00` | The configured pause time window |
+
+### Restart behavior
+
+Solar Boost, Night Heating Pause and Bath Boost change settings **on the heat pump controller**. Those settings stay on the controller even when Home Assistant is not running. Since v1.2.7 the integration makes sure nothing is left behind when Home Assistant restarts, stops or crashes:
+
+| Situation | What the integration does |
+|-----------|---------------------------|
+| **Home Assistant shuts down or restarts** | Before it stops, the hot water setpoint returns to the normal temperature, heating mode returns to "Automatic" and an active Bath Boost is ended. |
+| **Startup: setpoint is still at the Solar Boost temperature** (e.g. after a crash) | The boost is taken over and checked right away: still enough surplus → it keeps running; no surplus → the normal temperature is restored. If the grid sensor is not available yet, this happens as soon as it reports its first value. |
+| **Startup: heating mode is "Off" and Night Heating Pause is enabled** | Treated as a running pause: inside the night window it continues; outside the window heating returns to "Automatic". |
+| **Startup: Party mode at the Bath Boost target temperature** | Normal mode and temperature are restored. The boost does not resume, so press the button again if you still need hot water. |
+
+**Your own settings are left alone.** On startup the integration only takes over values it writes itself, and only while the feature is enabled. For example, it does not touch heating "Off" in summer while Night Heating Pause is disabled, a manually chosen setpoint that differs from the boost temperature, or Party mode with any setpoint other than the Bath Boost target.
+
+> **Before v1.2.7:** If Home Assistant restarted during an active Solar Boost, the setpoint stayed at the boost temperature (e.g. 65 °C) until the next boost cycle ended, so the heat pump kept heating hot water on grid power, including at night. If heating mode "Off" from the night pause stayed set, floor heating stayed off. If you were affected, check the hot water setpoint and heating mode once after updating.
 
 ---
 

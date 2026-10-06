@@ -17,8 +17,8 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
+from homeassistant.core import Event, HomeAssistant
 
 from .bath_boost import BathBoostManager
 from .const import DEFAULT_PORT, DOMAIN
@@ -71,15 +71,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # D-12: Store coordinator keyed by entry_id so entity platforms can retrieve it.
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
+    # Bath Boost: on-demand hot water heating manager.
+    # Started before Smart Energy so a stale bath boost (Party mode) left by a
+    # previous run is cleaned up first; Smart Energy skips Party mode.
+    bath_boost = BathBoostManager(hass, coordinator, entry)
+    await bath_boost.async_start()
+    hass.data[DOMAIN][f"{entry.entry_id}_bath_boost"] = bath_boost
+
     # Smart Energy: start automation manager (Solar Boost + Night Heating Pause)
     smart_energy = SmartEnergyManager(hass, coordinator, entry)
     await smart_energy.async_start()
     hass.data[DOMAIN][f"{entry.entry_id}_smart_energy"] = smart_energy
 
-    # Bath Boost: on-demand hot water heating manager
-    bath_boost = BathBoostManager(hass, coordinator, entry)
-    await bath_boost.async_start()
-    hass.data[DOMAIN][f"{entry.entry_id}_bath_boost"] = bath_boost
+    # HA does not unload config entries on shutdown, so async_unload_entry
+    # alone never restores normal values on a restart. Stop both managers on
+    # EVENT_HOMEASSISTANT_STOP so no boosted setpoint or paused heating stays
+    # on the controller while HA is down.
+    async def _async_handle_ha_stop(event: Event) -> None:
+        for manager in (bath_boost, smart_energy):
+            try:
+                await manager.async_stop()
+            except Exception:
+                _LOGGER.exception("Failed to stop %s on shutdown", type(manager).__name__)
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_handle_ha_stop)
+    )
 
     # D-14: Forward to entity platforms (sensor, select, number, switch).
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -90,7 +107,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a Luxtronik 2.0 (Home Assistant) config entry.
 
-    Called by HA when the user removes the integration or HA is shutting down.
+    Called by HA when the user removes the integration or reloads it. Not called
+    on HA shutdown — that is handled by the EVENT_HOMEASSISTANT_STOP listener
+    registered in ``async_setup_entry``.
     Unloads all entity platforms and removes the coordinator from hass.data. (D-13)
 
     Args:

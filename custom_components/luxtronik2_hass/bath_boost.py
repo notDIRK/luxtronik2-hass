@@ -11,6 +11,11 @@ entity, the manager:
 
 Progress tracking includes a dynamically calculated heat rate based on
 observed temperature changes, providing estimated remaining time.
+
+**Restart safety**: The boost state lives only in memory. If Home Assistant
+crashes during a boost, the controller stays in Party mode at the target
+temperature. On startup the manager detects exactly that combination and
+restores Automatic mode and the normal setpoint.
 """
 
 from __future__ import annotations
@@ -249,15 +254,48 @@ class BathBoostManager:
     async def async_start(self) -> None:
         """Start listening to coordinator updates.
 
-        Called from __init__.py after the coordinator is set up.
+        Called from __init__.py after the coordinator is set up, before the
+        Smart Energy manager starts.
         """
+        await self._reset_stale_boost()
+
         self._unsub_listener = self.coordinator.async_add_listener(
             self._on_coordinator_update
         )
         _LOGGER.info("Bath boost manager started")
 
+    async def _reset_stale_boost(self) -> None:
+        """Restore normal values if a previous run left a boost on the controller.
+
+        Detected as Party mode together with a setpoint equal to the bath
+        boost target — the exact pair written by ``async_activate``. Party
+        mode set by hand with a different setpoint is left alone. A write
+        failure is logged and must not break integration setup.
+        """
+        params = (self.coordinator.data or {}).get("parameters", {})
+        if (
+            params.get(PARAM_HOT_WATER_MODE) != HOT_WATER_MODE_PARTY
+            or params.get(PARAM_HOT_WATER_SETPOINT) != int(self.target_temp * 10)
+        ):
+            return
+
+        _LOGGER.warning(
+            "Bath boost left active by a previous run (Party mode, %.1f°C) — "
+            "restoring normal values",
+            self.target_temp,
+        )
+        try:
+            await self.async_deactivate()
+        except Exception:
+            _LOGGER.exception("Failed to reset stale bath boost")
+
     async def async_stop(self) -> None:
-        """Stop listening and restore normal parameters if boost is active."""
+        """Stop listening and restore normal parameters if boost is active.
+
+        Called on config entry unload and on Home Assistant shutdown
+        (EVENT_HOMEASSISTANT_STOP, registered in __init__.py). Safe to call
+        more than once.
+        """
         if self._unsub_listener:
             self._unsub_listener()
             self._unsub_listener = None
