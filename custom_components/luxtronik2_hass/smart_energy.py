@@ -24,6 +24,7 @@ ended by the normal evaluation instead of hanging until the next cycle.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, time, timedelta
 
@@ -97,6 +98,11 @@ class SmartEnergyManager:
         # Unsub callbacks for cleanup
         self._unsub_grid_listener = None
         self._unsub_timer = None
+
+        # ha-005: serialize evaluations so grid-change bursts and the 60 s timer
+        # cannot stack unbounded tasks while a coordinator write is slow. A new
+        # evaluation is DROPPED (not queued) while one is already in flight.
+        self._eval_lock = asyncio.Lock()
 
     @property
     def solar_boost_enabled(self) -> bool:
@@ -264,12 +270,30 @@ class SmartEnergyManager:
     @callback
     def _handle_grid_change(self, event) -> None:
         """Handle grid sensor state changes."""
-        self.hass.async_create_task(self._evaluate_solar_boost())
+        self.hass.async_create_task(self._guarded_evaluate(solar_only=True))
 
     @callback
     def _periodic_evaluate(self, now=None) -> None:
         """Periodically evaluate night pause and boost timeout."""
-        self.hass.async_create_task(self._evaluate_all())
+        self.hass.async_create_task(self._guarded_evaluate())
+
+    async def _guarded_evaluate(self, solar_only: bool = False) -> None:
+        """Run an evaluation unless one is already in flight.
+
+        ha-005: without this guard, every grid-sensor change plus the 60 s timer
+        spawned a fresh task; when a coordinator write hung, those tasks piled up
+        (~900 observed overnight). ``asyncio.Lock.locked()`` and the immediate
+        ``async with`` acquire run without an intervening await, so the first
+        task acquires the lock and all concurrent ones see it locked and drop.
+        """
+        if self._eval_lock.locked():
+            _LOGGER.debug("Smart Energy evaluation already running — dropping this one")
+            return
+        async with self._eval_lock:
+            if solar_only:
+                await self._evaluate_solar_boost()
+            else:
+                await self._evaluate_all()
 
     async def _evaluate_all(self) -> None:
         """Evaluate both features."""
@@ -334,24 +358,33 @@ class SmartEnergyManager:
                     )
 
     async def _activate_boost(self) -> None:
-        """Activate solar boost — raise hot water setpoint."""
+        """Activate solar boost — raise hot water setpoint.
+
+        ha-005: state is set BEFORE the write. If the write hangs or fails, the
+        manager still regards the boost as active, so the next evaluation runs
+        the normal deactivation path instead of re-issuing an activation write
+        on top of a possibly-pending one.
+        """
         _LOGGER.info(
             "Solar boost ACTIVATING — setting hot water to %.1f°C",
             self.solar_boost_temp,
         )
-        await self._set_hot_water_temp(self.solar_boost_temp)
         self._boost_active = True
         self._boost_activated_at = datetime.now()
+        await self._set_hot_water_temp(self.solar_boost_temp)
 
     async def _deactivate_boost(self) -> None:
-        """Deactivate solar boost — restore normal hot water setpoint."""
+        """Deactivate solar boost — restore normal hot water setpoint.
+
+        ha-005: state is cleared BEFORE the write (see _activate_boost).
+        """
         _LOGGER.info(
             "Solar boost DEACTIVATING — setting hot water to %.1f°C",
             self.solar_normal_temp,
         )
-        await self._set_hot_water_temp(self.solar_normal_temp)
         self._boost_active = False
         self._boost_activated_at = None
+        await self._set_hot_water_temp(self.solar_normal_temp)
 
     async def _evaluate_night_pause(self) -> None:
         """Evaluate whether to activate or deactivate night heating pause.
@@ -370,12 +403,13 @@ class SmartEnergyManager:
 
         if in_night_window and not self._night_pause_active:
             _LOGGER.info("Night heating pause ACTIVATING — setting heating to OFF")
-            await self._set_heating_mode(HEATING_MODE_OFF)
+            # ha-005: set state before the write (see _activate_boost).
             self._night_pause_active = True
+            await self._set_heating_mode(HEATING_MODE_OFF)
         elif not in_night_window and self._night_pause_active:
             _LOGGER.info("Night heating pause DEACTIVATING — setting heating to AUTO")
-            await self._set_heating_mode(HEATING_MODE_AUTO)
             self._night_pause_active = False
+            await self._set_heating_mode(HEATING_MODE_AUTO)
 
     def _is_in_night_window(self, now: time) -> bool:
         """Check if the current time is within the night pause window.

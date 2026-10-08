@@ -772,6 +772,59 @@ class LuxtronikLastBackupSensor(SensorEntity):
 
 
 # ---------------------------------------------------------------------------
+# LuxtronikLastUpdateSensor
+# ---------------------------------------------------------------------------
+
+
+class LuxtronikLastUpdateSensor(
+    CoordinatorEntity[LuxtronikCoordinator], SensorEntity
+):
+    """Diagnostic sensor: timestamp of the last successful controller read.
+
+    ha-005: when the integration stalled for 35 h, every data entity kept its
+    last value and stayed "available", so the outage was invisible. This sensor
+    exposes ``coordinator.last_successful_update`` and — unlike the data
+    entities — stays AVAILABLE during an outage so the stale timestamp (and a
+    growing gap to "now") makes the stall obvious at a glance and in automations.
+    """
+
+    _attr_name = "Luxtronik Last Successful Update"
+    _attr_icon = "mdi:clock-check-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_has_entity_name = False
+
+    def __init__(
+        self,
+        coordinator: LuxtronikCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the last-successful-update sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_last_successful_update"
+
+    @property
+    def available(self) -> bool:
+        """Always available — its whole purpose is to report during an outage."""
+        return True
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for grouping under the heat pump device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
+            name=MODEL,
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
+
+    @property
+    def native_value(self) -> datetime.datetime | None:
+        """Return the timestamp of the last fully successful read (UTC, tz-aware)."""
+        return self.coordinator.last_successful_update
+
+
+# ---------------------------------------------------------------------------
 # LuxtronikBathBoostSensor
 # ---------------------------------------------------------------------------
 
@@ -894,6 +947,9 @@ async def async_setup_entry(
     # Add the last-backup sensor — reads hass.data set by button.py, not coordinator.
     entities_all: list[SensorEntity] = list(entities)
     entities_all.append(LuxtronikLastBackupSensor(hass, entry))
+
+    # ha-005: diagnostic sensor making a coordinator stall visible.
+    entities_all.append(LuxtronikLastUpdateSensor(coordinator, entry))
 
     # Add bath boost status sensor if manager is available
     bath_boost_mgr: BathBoostManager | None = hass.data[DOMAIN].get(
